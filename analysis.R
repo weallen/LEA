@@ -9,6 +9,36 @@ library(bigmemory)
 
 setwd("/gpfs/home/wallen/experiment/experiment/stavros_data")
 
+source("~/src/LEA/medips.R")
+
+convertMedipsToDipData <- function() {
+  cat("omp\n")
+  load("omp_hmedip.Rdata")
+  saveMedipsForDipData(omp.hmedip, "omp_hmedip")
+  rm(omp.hmedip)
+
+  cat("ngn\n")
+  load("ngn_hmedip.Rdata")
+  saveMedipsForDipData(ngn.hmedip, "ngn_hmedip")
+  rm(ngn.hmedip) 
+
+  cat('icam\n')
+  load("icam_hmedip.Rdata")
+  saveMedipsForDipData(icam.hmedip, "icam_hmedip")
+  rm(icam.hmedip)
+
+  cat('moe\n')
+  load("moe_hmedip.Rdata")
+  saveMedipsForDipData(moe.hmedip, "moe_hmedip")
+  rm(moe.hmedip)
+
+  cat('moe_ac3\n')
+  load("moe_ac3_hmedip.Rdata")
+  saveMedipsForDipData(moe.ac3.hmedip, "moe_ac3_hmedip")
+  rm(moe.ac3.hmedip)
+
+  gc()
+}
 
 rescaleAndDiff <- function(medips1, medips2, window.size=1000) {
   cat("Rescaling medips1\n")
@@ -39,7 +69,7 @@ selectSignificants <- function(medips.diff, fdr.cutoff=0.01) {
 # SCRIPT
 
 files <- c("omp_hmedip.bed", "ngn_hmedip.bed", "icam_hmedip.bed", "moe_hmedip.bed", "moe_ac3_hmedip.bed")
-chrs <- c(paste("chr", 1:18, sep=""), "chrX", "chrY")
+chrs <- c(paste("chr", 1:19, sep=""), "chrX", "chrY")
 # HMEDIP
 #loadAndSaveAllHmeDipData()
 

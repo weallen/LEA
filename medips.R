@@ -20,7 +20,7 @@ loadMedips <- function(fname) {
   d <- MEDIPS.normalize(data=d)
   return(d)
 }
-n
+
   
 plotCalibrateDip <- function(dip.data, fname, chr) {
   GDD(file=fname, type="png", width=1200, height=900)

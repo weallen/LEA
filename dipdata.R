@@ -54,7 +54,7 @@ load.DipData <- function(dip.data.name) {
     stop("Error: Dipdata file does not exist")
   }
   obj <- DipData(dip.data.name)
-  obj$genome.chr <- .readDipDataCol(data.path, "genome_chr", "char")
+  obj$genome.chr <- .readDipDataCol:(data.path, "genome_chr", "char")
   obj$genome.pos <- .readDipDataCol(data.path, "genome_pos", "double")
   obj$genome.raw <- .readDipDataCol(data.path, "genome_raw", "double")
   obj$genome.norm <- .readDipDataCol(data.path, "genome_norm", "double")

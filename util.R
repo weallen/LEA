@@ -29,12 +29,23 @@ loadROIFile <- function(roi.file.name) {
   return(list(roi=roi, chr=roi.chr))
 }
 
+chrToNum <- function(chr) {
+  if (chr == "chrX") 
+    return(20.0)
+  if (chr == "chrY")
+    return(21.0)
+  if (chr == "chrM")
+    return(22.0)
+  else
+    return(as.double(strsplit(chr, "chr")[[1]][2]))
+}
+
 numToChr <- function(chr) {
-  if (chr == 19.0) 
+  if (chr == 20.0) 
     return("chrX")
-  if (chr == 20.0)
-    return("chrY")
   if (chr == 21.0)
+    return("chrY")
+  if (chr == 22.0)
     return("chrM")
   else 
     return(paste("chr", chr, sep=""))
