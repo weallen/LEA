@@ -125,8 +125,12 @@ saveMedipsForDipData <- function(medips.obj, dset.name) {
   dir.create(data.path)
   chrs <- data.frame(name=dset.name, chr.names=medips.obj@chr_names, chr.lengths=medips.obj@chr_lengths, bin.size=medips.obj@bin_size)
   write.table(chrs, file=paste(data.path, dset.name, sep="/"), sep=",")
-  write(medips.obj@genome_chr, paste(data.path, "genome_chr.txt", sep="/"), sep="\n")
-  write(medips.obj@genome_pos, paste(data.path, "genome_pos.txt", sep="/"), sep="\n")
-  write(medips.obj@genome_raw, paste(data.path, "genome_raw.txt", sep="/"), sep="\n")
-  write(medips.obj@genome_norm, paste(data.path, "genome_norm.txt", sep="/"), sep="\n")
+  chrs.num <- chrVecToNum(medips.obj@genome_chr)
+  all.data <- matrix(0, length(chrs.num), 4)
+  colnames(all.data) <- c("chr", "pos", "raw", "norm")
+  all.data[,1] <- chrs.num
+  all.data[,2] <- medips.obj@genome_pos
+  all.data[,3] <- medips.obj@genome_raw
+  all.data[,4] <- medips.obj@genome_norm
+  write.table(as.data.frame(all.data), file=paste(data.path, "genome_data.txt", sep="/"),  sep=",", quote=FALSE, row.names=FALSE)
 }
