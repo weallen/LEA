@@ -10,6 +10,7 @@ library(bigmemory)
 setwd("/gpfs/home/wallen/experiment/experiment/stavros_data")
 
 source("~/src/LEA/medips.R")
+source("~/src/LEA/util.R")
 
 convertMedipsToDipData <- function() {
   cat("omp\n")
