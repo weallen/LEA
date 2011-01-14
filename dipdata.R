@@ -111,7 +111,6 @@ subsetROI.DipData <- function(dd, roi) {
 # cutoff
 mergeDiffEnrich.DipData <- function(dd, p.vals, p.cutoff=0.05, gaps.cutoff=10) {
   diff.enriched <- dd$genome.data[p.vals < p.cutoff]
-  diff.enriched <- diff.enriched[diff.enriched[,"chr"] == 1,]
   bin.size <- dd$bin.size[1]
   chr.idx <- bigsplit(diff.enriched, "chr")
   mtx <- matrix(0, length(diff.enriched[,"chr"]), 3)
@@ -136,7 +135,7 @@ mergeDiffEnrich.DipData <- function(dd, p.vals, p.cutoff=0.05, gaps.cutoff=10) {
       mtx.idx <- mtx.idx + 1
     }
   }
-  return(mtx[mtx[,1] > 0])
+  return(mtx[mtx[,1] > 0,])
 }
 
 
