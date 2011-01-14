@@ -8,7 +8,7 @@ library(doMC)
 
 #options(bigmemory.typecast, warning=FALSE)
 options(bigmemory.allow.dimnames=TRUE)
-registerDoMC(cores=16)
+registerDoMC(cores=11)
 
 
 DipData <- function(data.set.name, genome.data=NULL, chr.names=NULL,
@@ -102,9 +102,26 @@ diffEnrichment.DipData <- function(dd1, dd2) {
   return(p.val)
 }
 
-
-# Usually you'd want to do multiple hypothesis adjustment before doing this
-saveDiffEnriched.DipData <- function(fname, dd, p.vals, cutoff=0.05) {
-  # TODO implement
+subsetROI.DipData <- function(dd, roi) {
 }
 
+mergeDiffEnrich.DipData <- function(dd, p.vals, cutoff=0.05) {
+  diff.enriched <- dd$genome.data[p.vals < cutoff]
+  
+}
+
+# Usually you'd want to do multiple hypothesis adjustment before doing this
+saveDiffEnrichedWIG.DipData <- function(dd, fname, p.vals, cutoff=0.05) {
+  diff.enriched <- dd$genome.data[p.vals < cutoff]
+  chr.idx <- bigsplit(diff.enriched, "chr")
+  write("track type=wiggle_0", file=fname)
+  for(chr in dd$chr.names) {
+    curr.enriched <- diff.enriched[which(diff.enriched[,"chr"] == chrToNum(chr)), ]
+    if (length(curr.enriched) > 0) {
+      chr.start <- min(curr.enriched[,"pos"])
+      chrom.str <- paste("fixedStep chrom=",chr," start=", chr.start, " step=100 span=100", sep="") 
+      write(chrom.str, file=fname, append=TRUE)
+      write(curr.enriched[,"pos"], file=fname, append=TRUE, sep="\n")
+    }
+  }
+}

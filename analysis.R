@@ -11,6 +11,27 @@ setwd("/gpfs/home/wallen/experiment/experiment/stavros_data")
 
 source("~/src/LEA/medips.R")
 source("~/src/LEA/util.R")
+source("~/src/LEA/dipdata.R")
+
+pairwiseDiffHmeEnrich <- function() {
+  cat("omp vs ngn\n")
+  dd1 <- load.DipData("moe_hmedip")
+  dd2 <- load.DipData("ngn_hmedip")
+  p.val <- diffEnrichment.DipData(dd1, dd2)
+  p.adj <- mt.rawp2adjp(p.val, proc="BH")$adjp
+  write.table(p.adj, file="omp_ngn_pval.txt", quote=FALSE)
+  rm(p.val)
+  rm(p.adj)
+  
+  cat("ngn vs icam\n")
+  dd1 <- load.DipData("ngn_hmedip")
+  dd2 <- load.DipData("icam_hmedip")
+  p.val <- diffEnrichment.DipData(dd1, dd2)
+  p.adj <- mt.rawp2adjp(p.val, proc="BH")$adjp
+  write(p.adj, file="ngn_icam_pval.txt", quote=FALSE)
+  rm(p.val)
+  rm(p.adj)
+}
 
 convertMedipsToDipData <- function() {
   cat("omp\n")
