@@ -8,7 +8,7 @@ library(doMC)
 
 #options(bigmemory.typecast, warning=FALSE)
 options(bigmemory.allow.dimnames=TRUE)
-registerDoMC(cores=8)
+registerDoMC(cores=2)
 
 
 DipData <- function(data.set.name, genome.data=NULL, chr.names=NULL,
