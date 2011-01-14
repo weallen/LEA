@@ -105,10 +105,40 @@ diffEnrichment.DipData <- function(dd1, dd2) {
 subsetROI.DipData <- function(dd, roi) {
 }
 
-mergeDiffEnrich.DipData <- function(dd, p.vals, cutoff=0.05) {
-  diff.enriched <- dd$genome.data[p.vals < cutoff]
-  
+# Coverts matrix of differentially enriched windows to matrix of spans
+# of differential enrichment (merging nearby windows)
+# uses a greedy algorithm for merging, allowing for missing windows up to some
+# cutoff
+mergeDiffEnrich.DipData <- function(dd, p.vals, p.cutoff=0.05, gaps.cutoff=10) {
+  diff.enriched <- dd$genome.data[p.vals < p.cutoff]
+  diff.enriched <- diff.enriched[diff.enriched[,"chr"] == 1,]
+  bin.size <- dd$bin.size[1]
+  chr.idx <- bigsplit(diff.enriched, "chr")
+  mtx <- matrix(0, length(diff.enriched[,"chr"]), 3)
+  mtx.idx <- 0
+  foreach(idx=icount(length(diff.enriched[,"chr"]))) %do% {
+    curr.chr <- diff.enriched[idx, "chr"]
+    curr.span.start <- diff.enriched[idx, "pos"]
+    curr.span.end <- curr.span.start + bin.size
+    pos <- diff.enriched[idx, "pos"]
+    if (pos == curr.span.end) {
+      curr.span.end <- pos + bin.size
+    }
+    else if (pos > curr.span.end && (pos <= (curr.span.end + (bin.size * (gaps.cutoff + 1))))) {
+      curr.span.end <- pos + bin.size
+    }
+    else {
+      curr.span.start <- pos
+      curr.span.end <- pos + bin.size
+      mtx[mtx.idx, 1] <- curr.chr
+      mtx[mtx.idx, 2] <- curr.span.start
+      mtx[mtx.idx, 3] <- curr.span.end
+      mtx.idx <- mtx.idx + 1
+    }
+  }
+  return(mtx[mtx[,1] > 0])
 }
+
 
 # Usually you'd want to do multiple hypothesis adjustment before doing this
 saveDiffEnrichedWIG.DipData <- function(dd, fname, p.vals, cutoff=0.05) {
