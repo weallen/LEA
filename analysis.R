@@ -7,7 +7,8 @@ library(BSgenome.Mmusculus.UCSC.mm9)
 library(GDD)
 library(bigmemory)
 
-setwd("/gpfs/home/wallen/experiment/experiment/stavros_data")
+#setwd("/gpfs/home/wallen/experiment/experiment/stavros_data")
+setwd("~/Documents/Neuroscience/barnea_lab/rna_seq_experiment/stavros_chip")
 
 source("~/src/LEA/medips.R")
 source("~/src/LEA/util.R")
@@ -92,8 +93,5 @@ selectSignificants <- function(medips.diff, fdr.cutoff=0.01) {
 
 files <- c("omp_hmedip.bed", "ngn_hmedip.bed", "icam_hmedip.bed", "moe_hmedip.bed", "moe_ac3_hmedip.bed")
 chrs <- c(paste("chr", 1:19, sep=""), "chrX", "chrY")
-# HMEDIP
-#loadAndSaveAllHmeDipData()
 
-#moe.ac3.diff <- MEDIPS.methylProfiling(data1=moe.hmedip, data2=moe.ac3.hmedip, select=1, frame_size=10000)
-#moe.ac3.sig <- MEDIPS.mergeFrames(frames=MEDIPS.selectSignificants(frames=moe.ac3.diff, control=F, p.value=1e-04))
+
