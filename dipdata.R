@@ -1,6 +1,7 @@
 library(bigmemory)
 library(bigtabulate)
 library(biganalytics)
+library(bigalgebra)
 library(multicore)
 library(foreach)
 library(doMC)
@@ -8,7 +9,7 @@ library(doMC)
 
 #options(bigmemory.typecast, warning=FALSE)
 options(bigmemory.allow.dimnames=TRUE)
-registerDoMC(cores=2)
+registerDoMC(cores=10)
 
 
 DipData <- function(data.set.name, genome.data=NULL, chr.names=NULL,
@@ -21,6 +22,16 @@ DipData <- function(data.set.name, genome.data=NULL, chr.names=NULL,
               bin.size = bin.size)                
   class(obj) <- "DipData" 
   return(obj)
+}
+
+normDist.DipData <- function(dd1, dd2) {
+  dd1.data <- as.vector(dd1$genome.data[,'norm'])
+  dd2.data <- as.vector(dd2$genome.data[,'norm'])
+  return(sqrt(sum(dd1.data - dd2.data)**2))
+}
+
+getNormEnrich.DipData <- function(dd) {
+  return(dd$genome.data[,'norm'])
 }
 
 save.DipData <- function(dip.data) {
@@ -102,7 +113,8 @@ diffEnrichment.DipData <- function(dd1, dd2) {
   return(p.val)
 }
 
-subsetROI.DipData <- function(dd, roi) {
+subsetByROI.DipData <- function(dd, roi) {
+  
 }
 
 # Coverts matrix of differentially enriched windows to matrix of spans

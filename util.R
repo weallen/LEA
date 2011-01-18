@@ -1,10 +1,10 @@
-
-
 callSignificant <- function(p.vals, fdr.level=0.1) {
   qvals <- try(qvalue(signif(p.vals, 8)))
   if ("qvalues" %in% names(qvals)) {
+    cat("using qvals\n")
     return(qvals$qvalues)
   } else {
+    cat("Doing Bonferroni correction\n")
     return(pmin(p.vals * length(p.vals), 1))
   }
 }
@@ -147,7 +147,7 @@ qvalue <- function(p=NULL, lambda=seq(0,0.90,0.05), pi0.method="smoother", fdr.l
 
 
 dsetToPath <- function(dsetname) {
-  return(paste("data", paste(dsetname, "bed", sep="."), sep="/"))
+  return(paste("/gpfs/home/wallen/data/aligned_reads/", paste(dsetname, "bed", sep="."), sep="/"))
 }
 
 rescale.vector <- function(chip.data, scale.factor) {

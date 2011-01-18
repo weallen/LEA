@@ -11,9 +11,9 @@ medipsToGRanges <- function(medips.object) {
                  reads=genome_raw(medips.object)[which.idx]))
 }
 
-loadMedips <- function(fname) {
+loadMedips <- function(fname, bin.size) {
   d <- MEDIPS.readAlignedSequences(BSgenome = "BSgenome.Mmusculus.UCSC.mm9", file=fname)
-  d <- MEDIPS.genomeVector(data=d, bin_size=100, extend=350)
+  d <- MEDIPS.genomeVector(data=d, bin_size=bin.size, extend=350)
   d <- MEDIPS.getPositions(data=d, pattern="CG")
   d <- MEDIPS.couplingVector(data=d, fragmentLength=700, func="count")
   d <- MEDIPS.calibrationCurve(data=d)
