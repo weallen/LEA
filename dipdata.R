@@ -130,7 +130,7 @@ subsetByROI.DipData <- function(dd, in.roi) {
     cat(curr.roi.end,'\n')
     return(seq(curr.roi.start,curr.roi.end))
   }
-  return(DipData(dd$name, dd$genome.data[idx,], dd$chr.names, dd$chr.lengths, dd$bin.size))
+  return(DipData(dd$name, as.big.matrix(dd$genome.data[idx,]), dd$chr.names, dd$chr.lengths, dd$bin.size))
 }
 
 computeAndSaveDiffEnrich.DipData <- function(dd1, dd2, fname, roi=NULL) {
@@ -213,7 +213,6 @@ normThreshold.DipData <- function(dd, fdr = 0.1) {
   data <- log2(dd$genome.data[dd$genome.data[,'norm']>0,'norm'])
   params <- thresholdParams(data)
   z.vals <- (data - params$mean) / params$sd
-
   ### NOTE RETURNS CONSTANT
   return(0.5)
 }
@@ -223,12 +222,15 @@ callEnriched.DipData <- function(dd) {
   return(dd$genome.data[dd$genome.data[,'norm'] > thresh, ])
 }
 
-
-writeSubsetROI <- function(set, win.size, fname) {
-  chrs <- sapply(set[,'chr'], numToChr)
-  out <- data.frame(chr=numToChr(set[,'chr'], start=set[,'pos'], end=set[,'pos'] + win.size)
-  write.table(out, file=fname, sep='\t', header=FALSE, quote=FALSE, row.names=FALSE)
+whichEnriched.DipData <- function(dd) {
+  thresh <- normThreshold.DipData(dd)
+  return(which(dd$genome.data[,'norm'] > thresh))
 }
 
-
+writeSubsetROI <- function(set, win.size, fname) {
+  old.chrs <- set[,'chr']
+  chrs <- unlist(sapply(old.chrs, numToChr))
+  out <- data.frame(chr=chrs, start=set[,'pos'], end=set[,'pos'] + win.size)
+  write.table(out, file=fname, sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
+}
 

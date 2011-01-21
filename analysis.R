@@ -17,6 +17,25 @@ source("~/src/LEA/medips.R")
 source("~/src/LEA/util.R")
 source("~/src/LEA/dipdata.R")
 
+# Writes ROI file of all above threshold enriched windows 
+ROIAllEnriched <- function(dsets) {
+  all.enriched <- unlist(sapply(dsets, function(i) {
+    temp <- load.DipData(i)
+    return(whichEnriched.DipData(temp))
+  }))
+  return(unique(all.enriched))
+}
+
+writeEnrichedROI <- function() {
+   dsets <- c("omp_medip_25kb", "ngn_medip_25kb", "icam_medip_25kb")
+   medip.roi <- ROIAllEnriched(dsets)
+   dsets <- c("omp_hmedip_25kb", "ngn_hmedip_25kb", "icam_hmedip_25kb")
+   hmedip.roi <- ROIAllEnriched(dsets)
+   omp.medip <- load.DipData("omp_medip_25kb")
+   writeSubsetROI(omp.medip$genome.data[medip.roi, c('chr', 'pos')], 25000, "roi/medip_enrich_roi.txt")
+   writeSubsetROI(omp.medip$genome.data[hmedip.roi, c('chr', 'pos')], 25000, "roi/hmedip_enrich_roi.txt")
+}
+
 pairwiseDiffEnrich <- function() {
 #  pairs <- list(c("moe_hmedip_1kb", "moe_ac3_hmedip_1kb"),
 #                c("omp_hmedip_1kb", "icam_hmedip_1kb"),
