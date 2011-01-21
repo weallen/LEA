@@ -14,3 +14,7 @@ DATA_PATH = "/gpfs/home/wallen/experiment/experiment/stavros_data/dipdata/"
 
 TRACKS = ["omp_medip_25kb", "ngn_medip_25kb", "icam_medip_25kb",\
           "omp_hmedip_25kb", "ngn_hmedip_25kb", "icam_hmedip_25kb"]
+
+RNA_DATASETS = ["ompgfp", "ngnhigh"]
+KNOWNGENE = "knowngenes.txt"
+

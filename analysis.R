@@ -1,13 +1,8 @@
-
 library(MEDIPS)
 library(gtools)
-library(edgeR)
-#library(plyr)
-library(multtest)
 library(BSgenome.Mmusculus.UCSC.mm9)
 library(GDD)
 library(bigmemory)
-library(fields)
 library(gplots)
 
 setwd("/gpfs/home/wallen/experiment/experiment/stavros_data")
@@ -16,6 +11,40 @@ source("~/src/LEA/common.R")
 source("~/src/LEA/medips.R")
 source("~/src/LEA/util.R")
 source("~/src/LEA/dipdata.R")
+
+.doROIDiff <- function(pairs, roi) {
+#    foreach (pair = pairs)  %do% {
+  for (pair in pairs) {
+    fname <- paste(paste("enriched25kb", pair[1], "vs", pair[2], sep="_"), "txt", sep=".")
+    cat("loading", pair[1], '\n')
+    dd1 <- subsetByROI.DipData(load.DipData(pair[1]), roi)
+    cat("loading", pair[2], '\n')
+    dd2 <- subsetByROI.DipData(load.DipData(pair[2]), roi)
+    cat('computing and saving diff enrich', fname, '\n')
+    p.val <- computeAndSaveDiffEnrich.DipData(dd1, dd2, fname)
+    cat(sum(p.val < .1), 'locs at less than .1 pval \n')
+    if (sum(p.val < .1) > 0) {
+      set <- subsetByPos.DipData(dd1, which(p.val < .1))
+      writeSubsetROI(set, 1000, paste("roi/signif", pair[1], pair[2], ".txt", sep="_"))
+    }
+    cat("==============\n")
+  }
+}
+
+diffEnrichedROI <- function() {
+  me.roi <- loadROI("roi/medip_enrich_roi.txt")
+  hme.roi <- loadROI("roi/hmedip_enrich_roi.txt")
+  
+  me.pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
+                   c("ngn_medip_1kb", "icam_medip_1kb"),
+                   c("omp_medip_1kb", "ngn_medip_1kb"))
+  hme.pairs <- list(c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
+                    c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
+                    c("omp_hmedip_1kb", "icam_hmedip_1kb"))
+  
+  .doROIDiff(me.pairs, me.roi)
+  .doROIDiff(hme.pairs, hme.roi)
+}
 
 # Writes ROI file of all above threshold enriched windows 
 ROIAllEnriched <- function(dsets) {

@@ -1,5 +1,5 @@
-callSignificant <- function(p.vals, fdr.level=0.05) {
-  qvals <- try(qvalue(signif(p.vals, 8)))
+fdrAdjust <- function(p.vals) {
+  qvals <- qvalue(signif(p.vals, 16))
   if ("qvalues" %in% names(qvals)) {
     cat("using qvals\n")
     return(qvals$qvalues)

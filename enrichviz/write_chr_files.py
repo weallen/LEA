@@ -57,6 +57,21 @@ rpadding = 0p
 </plot>
 """
 
+EXPR_TRACK="""
+<plot>
+show = yes
+type = scatter
+file = ../data/{expr}
+glyph = circle
+fill_color = {color}
+stroke_color = {color}
+stroke_thickness = 1
+min = 0.0000
+max = 10.00
+r0 = 0.85r
+r1 = 0.9r
+</plot>
+"""
 
 def main():
     max_chr_len = 197195432.0 
@@ -85,6 +100,11 @@ def main():
             r0 = r1 + .01
             r1 = r0 + .05
         f.write(GENE_TRACK)
+        colors = ['nyt_orange', 'nyt_yellow']
+        for i in range(len(RNA_DATASETS)):
+            dset = RNA_DATASETS[i]
+            color = colors[i]
+            f.write(EXPR_TRACK.format(expr=dset, color=color))
         f.write("</plots>\n")
         f.close() 
         

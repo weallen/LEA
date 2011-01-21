@@ -4,9 +4,11 @@ library(biganalytics)
 library(bigalgebra)
 library(bbmle)
 library(MASS)
+library(itertools)
 library(multicore)
 library(foreach)
 library(doMC)
+library(multtest)
 #library(qvalue)
 
 #options(bigmemory.typecast, warning=FALSE)
@@ -116,31 +118,30 @@ diffEnrichment.DipData <- function(dd1, dd2) {
   return(p.val)
 }
 
-# ROI is data.frame(chr=, start=, end=)
+# ROI is data frame with numeric cols
 subsetByROI.DipData <- function(dd, in.roi) {
   bin.size <- dd$bin.size[1]
-  cat(bin.size, '\n')
   absolute.pos <- c(1, cumsum(ceiling(dd$chr.lengths / dd$bin.size[[1]])))
   idx <- foreach(curr.roi = isplitRows(in.roi, chunkSize=1), .combine=c) %do% {
     curr.chr <- curr.roi[[1]]
     curr.chr.start <- absolute.pos[curr.chr]
     curr.roi.start <- curr.chr.start + ceiling(curr.roi[[2]] / bin.size)
-    cat(curr.roi.start,'\n')
     curr.roi.end <- curr.chr.start + ceiling(curr.roi[[3]] / bin.size)
-    cat(curr.roi.end,'\n')
     return(seq(curr.roi.start,curr.roi.end))
   }
   return(DipData(dd$name, as.big.matrix(dd$genome.data[idx,]), dd$chr.names, dd$chr.lengths, dd$bin.size))
 }
 
-computeAndSaveDiffEnrich.DipData <- function(dd1, dd2, fname, roi=NULL) {
+computeAndSaveDiffEnrich.DipData <- function(dd1, dd2, fname) {
   cat("calling diff enrich", fname, '\n')
   p.val <- diffEnrichment.DipData(dd1, dd2)
   cat("adjusting  pvals", fname, '\n')
-  q.val <- callSignificant(p.val)
-  tab <- data.frame(chr=dd1$genome.data[,1], pos=dd1$genome.data[,2], qval=q.val)
+#  q.val <- fdrAdjust(p.vals)
+  p.adj <-p.adjust(p.val, method="BH")
+  tab <- data.frame(chr=dd1$genome.data[,1], pos=dd1$genome.data[,2], qval=p.adj)
   cat('writing data', fname, '\n')
   write.table(tab, file=paste("diff_enrich", fname, sep="/"), quote=FALSE, sep=",", row.names=FALSE)
+  return(p.adj)
 }
 
 # Coverts matrix of differentially enriched windows to matrix of spans
@@ -197,7 +198,7 @@ getDiffEnrichPos.DipData <- function(dd, qvals, fdr=0.05) {
   return(subset.DipData(dd, which(qvals < .05)))
 }
 
-subset.DipData <- function(dd, positions) {  
+subsetByPos.DipData <- function(dd, positions) {  
   return(dd$genome.data[positions,])
 }
 
@@ -232,5 +233,11 @@ writeSubsetROI <- function(set, win.size, fname) {
   chrs <- unlist(sapply(old.chrs, numToChr))
   out <- data.frame(chr=chrs, start=set[,'pos'], end=set[,'pos'] + win.size)
   write.table(out, file=fname, sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
+}
+
+loadROI <- function(fname) {
+  roi <- read.table(fname, sep='\t', header=FALSE, colClasses=c('character', 'integer', 'integer'))
+  roi[,1] <- sapply(roi[,1], chrToNum)
+  return(as.matrix(roi))
 }
 
