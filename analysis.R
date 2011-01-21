@@ -12,77 +12,55 @@ library(gplots)
 
 setwd("/gpfs/home/wallen/experiment/experiment/stavros_data")
 #setwd("~/Documents/Neuroscience/barnea_lab/rna_seq_experiment/stavros_chip")
-
+source("~/src/LEA/common.R")
 source("~/src/LEA/medips.R")
 source("~/src/LEA/util.R")
 source("~/src/LEA/dipdata.R")
 
-euclidDistPlot <- function() {
-  pdf("euclid_dist.pdf")
-  omp.m <- load.DipData("omp_medip")
-  omp.h <- load.DipData('omp_hmedip')
-  ngn.m <- load.DipData('ngn_medip')
-  ngn.h <- load.DipData('ngn_hmedip')
-  moe.ac3.m <- load.DipData('moe_ac3_medip')
-  moe.ac3.h <- load.DipData('moe_ac3_hmedip')
-  icam.m <- load.DipData('icam_medip')
-  icam.h <- load.DipData('icam_hmedip')
-  moe.h <- load.DipData('moe_hmedip')
-  all.m <- list(omp.m, ngn.m, icam.m, moe.ac3.m, omp.h, ngn.h, icam.h, moe.ac3.h, moe.h)
-  all = matrix(nrow=length(all.m), ncol=length(all.m))
-  for(i in 1:length(all.m)) {
-    for(j in 1:length(all.m)) {
-      cat(i,j,'\n')
-      all[i,j] <- log2(normDist.DipData(all.m[[i]], all.m[[j]]) + 1)
-      cat(all[i,j],'\n')
-    }
-  }
-  rownames(all) <- c('omp m', 'ngn m', 'icam m', 'ac3 m', 'omp h', 'ngn h', 'icam h', 'ac3 h', 'moe h')
-  colnames(all) <- c('omp m', 'ngn m', 'icam m', 'ac3 m', 'omp h', 'ngn h', 'icam h', 'ac3 h', 'moe h')
-  heatmap.2(all, xlab=rownames(all), ylab=rownames(all))
-  dev.off()
-}
-
-enrichmentHist <- function() {
-  omp.m <- load.DipData("omp_medip")
-  omp.h <- load.DipData('omp_hmedip')
-  ngn.m <- load.DipData('ngn_medip')
-  ngn.h <- load.DipData('ngn_hmedip')
-  ac3.m <- load.DipData('moe_ac3_medip')
-  icam.m <- load.DipData('icam_medip')
-  icam.h <- load.DipData('icam_hmedip')
-  ac3.h <- load.DipData('moe_ac3_hmedip')
-  pdf("enrichment_hist.pdf")
-  par(mfrow=c(3, 4))
-  hist(log2(getNormEnrich.DipData(omp.m)), main="omp m")
-  hist(log2(getNormEnrich.DipData(ngn.m)), main="ngn m")
-  hist(log2(getNormEnrich.DipData(icam.m)), main="icam m")
-  hist(log2(getNormEnrich.DipData(ac3.m)), main='ac3 m')
-  hist(log2(getNormEnrich.DipData(omp.h)), main="omp h")
-  hist(log2(getNormEnrich.DipData(ngn.h)), main="ngn h")
-  hist(log2(getNormEnrich.DipData(icam.h)), main="icam h")
-  hist(log2(getNormEnrich.DipData(ac3.h)), main='ac3 h')
-  dev.off()
-}
-
-pairwiseDiffHmeEnrich <- function() {
-  cat("omp vs ngn\n")
-  dd1 <- load.DipData("moe_hmedip")
-  dd2 <- load.DipData("ngn_hmedip")
-  p.val <- diffEnrichment.DipData(dd1, dd2)
-  p.adj <- mt.rawp2adjp(p.val, proc="BH")$adjp
-  write.table(p.adj, file="omp_ngn_pval.txt", quote=FALSE)
-  rm(p.val)
-  rm(p.adj)
+pairwiseDiffEnrich <- function() {
+#  pairs <- list(c("moe_hmedip_1kb", "moe_ac3_hmedip_1kb"),
+#                c("omp_hmedip_1kb", "icam_hmedip_1kb"),
+#                c("moe_medip_1kb", "moe_ac3_medip_1kb"),
+#                c("omp_medip_1kb", "icam_medip_1kb"))
+  pairs <- list(c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
+                c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
+                c("omp_medip_1kb", "ngn_medip_1kb"),
+                c("ngn_medip_1kb", "icam_medip_1kb"))
   
-  cat("ngn vs icam\n")
-  dd1 <- load.DipData("ngn_hmedip")
-  dd2 <- load.DipData("icam_hmedip")
-  p.val <- diffEnrichment.DipData(dd1, dd2)
-  p.adj <- mt.rawp2adjp(p.val, proc="BH")$adjp
-  write(p.adj, file="ngn_icam_pval.txt", quote=FALSE)
-  rm(p.val)
-  rm(p.adj)
+#  i <- c("moe_medip_1kb", "moe_ac3_medip_1kb")
+  foreach(i = pairs) %dopar% {
+    fname <- paste(paste(i[1], i[2], sep="_vs_"), "txt", sep=".")
+    cat("loading", i[1], '\n')
+    dd1 <- load.DipData(i[1])
+    cat("loading", i[2], '\n')
+    dd2 <- load.DipData(i[2])
+    cat('computing and saving diff enrich', fname, '\n')
+    computeAndSaveDiffEnrich.DipData(dd1, dd2, fname)
+ }                
+}
+
+loadMoeMedip <- function() {
+  name <- "moe_medip"
+  curr.dset.100 <- loadMedips(dsetToPath(name), 100)
+  curr.dset.1000 <- loadMedips(dsetToPath(name), 1000)
+  curr.dset.10000 <- loadMedips(dsetToPath(name), 10000)
+  cat("100bp\n")
+  saveMedipsForDipData(curr.dset.100, "moe_medip")
+  cat("1kb\n")
+  saveMedipsForDipData(curr.dset.1000, "moe_medip_1kb")
+  cat("10kb\n")
+  saveMedipsForDipData(curr.dset.10000, "moe_medip_10kb")
+}
+
+convertAllDipsToDipData25kb <- function() {
+  names <- c(MEDIP.DATASETS, HMEDIP.DATASETS)
+  foreach(name = names) %dopar% {
+    cat(name, "\n")
+    cat("Loading medips for", name, " \n")
+    curr.dset <- loadMedips(dsetToPath(name), 25000)    
+    cat("Saving dipdata", name,"\n")
+    saveMedipsForDipData(curr.dset, paste(name, "25kb", sep="_"))
+  }
 }
 
 convertAllDipsToDipData10kb <- function() {

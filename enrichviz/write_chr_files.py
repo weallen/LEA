@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+import re
 from common import *
 
 HEADER = """<<include ../base.conf>>
@@ -21,45 +21,72 @@ auto_alpha_steps  = 5
 chromosomes = {chrname}
 
 <plots>
-type = histogram
+
 """
 
 PLOT="""
 <plot>
+type = histogram
 # FOR HISTOGRAM
 thickness = 1p
-color = black
+color = {color}
 fill_under = yes
-fill_color = bs8-2
+fill_color = {color}
 
 # FOR HEATMAP
-#color =  bd3-2, bd3-3, bd3-4, bd3-5, bd3-6, bd3-7, bd3-8, bd3-9, bd3-10, bd3-11
-#stroke_thickness = 0
-#min = 0.0
-#max = 1.0
+#scale_log_base = 2
+min = 0.0
+max = 1.0
 r0 = {r0}r
 r1 = {r1}r
 file = ../data/{dset}
 </plot>
 """
 
+GENE_TRACK="""
+<plot>
+type = text
+color = black
+file = ../data/knowngenes.txt
+r0 = 0.9r
+r1 = 1.0r
+label_size = 10p
+label_font = condensed
+padding = 0p
+rpadding = 0p
+</plot>
+"""
+
 
 def main():
     max_chr_len = 197195432.0 
-    print max_chr_len 
+    print max_chr_len
+    rcols = ""
+    for i in range(17):
+        rcols += "pg" + str(i) + ","
+    rcols += "pg17"
+    gcols = ""
+    for i in range(17):
+        gcols += "rb" + str(i) + ","
+    gcols += "rb17"
     for chr, size in CHRS.iteritems(): 
         f = open('chrs/' + chr + '.conf', 'w') 
         radius = 1500 * (size / max_chr_len) 
         print chr, size/max_chr_len 
-        f.write(HEADER.format(chrname=chr, radius=1500))
+        f.write(HEADER.format(chrname=chr, radius=2000))
         r0 = 0.5
-        r1 = r0 + .05
-        for track in TRACKS:            
-            f.write(PLOT.format(dset=track + ".txt", r0=r0, r1=r1))
+        r1 = r0 + .05        
+        for track in TRACKS:
+            if re.search("_hmedip", track): 
+                col = 'nyt_blue'
+            else: 
+                col = 'nyt_red'
+            f.write(PLOT.format(dset=track + ".txt", r0=r0, r1=r1, color=col))
             r0 = r1 + .01
             r1 = r0 + .05
+        f.write(GENE_TRACK)
         f.write("</plots>\n")
-        f.close()
+        f.close() 
         
         
 if __name__ == '__main__': 

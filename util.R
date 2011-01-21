@@ -1,4 +1,4 @@
-callSignificant <- function(p.vals, fdr.level=0.1) {
+callSignificant <- function(p.vals, fdr.level=0.05) {
   qvals <- try(qvalue(signif(p.vals, 8)))
   if ("qvalues" %in% names(qvals)) {
     cat("using qvals\n")

@@ -10,7 +10,7 @@ CHRS = {'chr1' : 197195432 , 'chr2' : 181748087,\
         'chr18' : 90772031, 'chr19' : 61342430,\
         'chrX' : 166650296, 'chrY' : 15902555}
 
-DATA_PATH = "/gpfs/home/wallen/experiment/experiment/stavros_data/"
+DATA_PATH = "/gpfs/home/wallen/experiment/experiment/stavros_data/dipdata/"
 
-TRACKS = ["omp_medip_10kb", "ngn_medip_10kb", "icam_medip_10kb",\
-          "omp_hmedip_10kb", "ngn_hmedip_10kb", "icam_hmedip_10kb"]
+TRACKS = ["omp_medip_25kb", "ngn_medip_25kb", "icam_medip_25kb",\
+          "omp_hmedip_25kb", "ngn_hmedip_25kb", "icam_hmedip_25kb"]

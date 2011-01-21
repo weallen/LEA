@@ -2,6 +2,8 @@ library(bigmemory)
 library(bigtabulate)
 library(biganalytics)
 library(bigalgebra)
+library(bbmle)
+library(MASS)
 library(multicore)
 library(foreach)
 library(doMC)
@@ -11,6 +13,7 @@ library(doMC)
 options(bigmemory.allow.dimnames=TRUE)
 registerDoMC(cores=10)
 
+source("~/src/LEA/util.R")
 
 DipData <- function(data.set.name, genome.data=NULL, chr.names=NULL,
                     chr.lengths=NULL, bin.size=NULL) {
@@ -75,7 +78,7 @@ load.DipData <- function(dip.data.name) {
   }
   # kind of a kludge but w/e
   old.wd <- getwd()
-  data.path <- paste(dip.data.name, "dipdata", sep=".")
+  data.path <- paste("dipdata",paste(dip.data.name, "dipdata", sep="."), sep="/")
   if (!file.exists(data.path)) {
     stop("Dipdata file does not exist")
   }
@@ -113,8 +116,31 @@ diffEnrichment.DipData <- function(dd1, dd2) {
   return(p.val)
 }
 
-subsetByROI.DipData <- function(dd, roi) {
-  
+# ROI is data.frame(chr=, start=, end=)
+subsetByROI.DipData <- function(dd, in.roi) {
+  bin.size <- dd$bin.size[1]
+  cat(bin.size, '\n')
+  absolute.pos <- c(1, cumsum(ceiling(dd$chr.lengths / dd$bin.size[[1]])))
+  idx <- foreach(curr.roi = isplitRows(in.roi, chunkSize=1), .combine=c) %do% {
+    curr.chr <- curr.roi[[1]]
+    curr.chr.start <- absolute.pos[curr.chr]
+    curr.roi.start <- curr.chr.start + ceiling(curr.roi[[2]] / bin.size)
+    cat(curr.roi.start,'\n')
+    curr.roi.end <- curr.chr.start + ceiling(curr.roi[[3]] / bin.size)
+    cat(curr.roi.end,'\n')
+    return(seq(curr.roi.start,curr.roi.end))
+  }
+  return(DipData(dd$name, dd$genome.data[idx,], dd$chr.names, dd$chr.lengths, dd$bin.size))
+}
+
+computeAndSaveDiffEnrich.DipData <- function(dd1, dd2, fname, roi=NULL) {
+  cat("calling diff enrich", fname, '\n')
+  p.val <- diffEnrichment.DipData(dd1, dd2)
+  cat("adjusting  pvals", fname, '\n')
+  q.val <- callSignificant(p.val)
+  tab <- data.frame(chr=dd1$genome.data[,1], pos=dd1$genome.data[,2], qval=q.val)
+  cat('writing data', fname, '\n')
+  write.table(tab, file=paste("diff_enrich", fname, sep="/"), quote=FALSE, sep=",", row.names=FALSE)
 }
 
 # Coverts matrix of differentially enriched windows to matrix of spans
@@ -166,3 +192,43 @@ saveDiffEnrichedWIG.DipData <- function(dd, fname, p.vals, cutoff=0.05) {
     }
   }
 }
+
+getDiffEnrichPos.DipData <- function(dd, qvals, fdr=0.05) {
+  return(subset.DipData(dd, which(qvals < .05)))
+}
+
+subset.DipData <- function(dd, positions) {  
+  return(dd$genome.data[positions,])
+}
+
+# Fits a normal distribution to the log2 normalized data
+thresholdParams <- function(data) {
+  fixed.data <- data[data > -Inf]
+  fit <- fitdistr(fixed.data, 'normal')
+  return(list(mean=fit$estimate['mean'], sd=fit$estimate['sd']))
+}
+
+# XXX not yet fully implemented
+normThreshold.DipData <- function(dd, fdr = 0.1) {
+  data <- log2(dd$genome.data[dd$genome.data[,'norm']>0,'norm'])
+  params <- thresholdParams(data)
+  z.vals <- (data - params$mean) / params$sd
+
+  ### NOTE RETURNS CONSTANT
+  return(0.5)
+}
+
+callEnriched.DipData <- function(dd) {
+  thresh <- normThreshold.DipData(dd)
+  return(dd$genome.data[dd$genome.data[,'norm'] > thresh, ])
+}
+
+
+writeSubsetROI <- function(set, win.size, fname) {
+  chrs <- sapply(set[,'chr'], numToChr)
+  out <- data.frame(chr=numToChr(set[,'chr'], start=set[,'pos'], end=set[,'pos'] + win.size)
+  write.table(out, file=fname, sep='\t', header=FALSE, quote=FALSE, row.names=FALSE)
+}
+
+
+
