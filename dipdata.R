@@ -16,6 +16,7 @@ options(bigmemory.allow.dimnames=TRUE)
 registerDoMC(cores=10)
 
 source("~/src/LEA/util.R")
+source("~/src/LEA/roi.R")
 
 DipData <- function(data.set.name, genome.data=NULL, chr.names=NULL,
                     chr.lengths=NULL, bin.size=NULL) {
@@ -148,7 +149,7 @@ computeAndSaveDiffEnrich.DipData <- function(dd1, dd2, fname) {
 # of differential enrichment (merging nearby windows)
 # uses a greedy algorithm for merging, allowing for missing windows up to some
 # cutoff
-mergeDiffEnrich.DipData <- function(dd, p.vals, p.cutoff=0.05, gaps.cutoff=10) {
+mergeDiffEnrich.DipData <- function(dd, p.vals, p.cutoff=0.05, gaps.cutoff=1) {
   diff.enriched <- dd$genome.data[p.vals < p.cutoff]
   bin.size <- dd$bin.size[1]
   chr.idx <- bigsplit(diff.enriched, "chr")
@@ -220,24 +221,14 @@ normThreshold.DipData <- function(dd, fdr = 0.1) {
 
 callEnriched.DipData <- function(dd) {
   thresh <- normThreshold.DipData(dd)
-  return(dd$genome.data[dd$genome.data[,'norm'] > thresh, ])
+  norm.raw <- dd$genome.data[,'raw'] / colsum(dd$genome.data, 'raw')
+  return(dd$genome.data[norm.raw > thresh, ])
 }
 
 whichEnriched.DipData <- function(dd) {
   thresh <- normThreshold.DipData(dd)
-  return(which(dd$genome.data[,'norm'] > thresh))
+  norm.raw <- dd$genome.data[,'raw'] / colsum(dd$genome.data, 'raw')
+  return(which(norm.raw > thresh))
 }
 
-writeSubsetROI <- function(set, win.size, fname) {
-  old.chrs <- set[,'chr']
-  chrs <- unlist(sapply(old.chrs, numToChr))
-  out <- data.frame(chr=chrs, start=set[,'pos'], end=set[,'pos'] + win.size)
-  write.table(out, file=fname, sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
-}
-
-loadROI <- function(fname) {
-  roi <- read.table(fname, sep='\t', header=FALSE, colClasses=c('character', 'integer', 'integer'))
-  roi[,1] <- sapply(roi[,1], chrToNum)
-  return(as.matrix(roi))
-}
 

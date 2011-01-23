@@ -11,6 +11,7 @@ source("~/src/LEA/common.R")
 source("~/src/LEA/medips.R")
 source("~/src/LEA/util.R")
 source("~/src/LEA/dipdata.R")
+source("~/src/LEA/roi.R")
 
 .doROIDiff <- function(pairs, roi) {
 #    foreach (pair = pairs)  %do% {
@@ -25,7 +26,7 @@ source("~/src/LEA/dipdata.R")
     cat(sum(p.val < .1), 'locs at less than .1 pval \n')
     if (sum(p.val < .1) > 0) {
       set <- subsetByPos.DipData(dd1, which(p.val < .1))
-      writeSubsetROI(set, 1000, paste("roi/signif", pair[1], pair[2], ".txt", sep="_"))
+      writeSubsetROI(mergeROIWindows(set), 1000, paste("roi/signif", pair[1], pair[2], ".txt", sep="_"))
     }
     cat("==============\n")
   }

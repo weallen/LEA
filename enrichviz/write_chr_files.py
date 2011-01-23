@@ -34,9 +34,9 @@ fill_under = yes
 fill_color = {color}
 
 # FOR HEATMAP
-#scale_log_base = 2
+#scale_log_base = 10
 min = 0.0
-max = 1.0
+max = 90.0
 r0 = {r0}r
 r1 = {r1}r
 file = ../data/{dset}
@@ -63,13 +63,19 @@ show = yes
 type = scatter
 file = ../data/{expr}
 glyph = circle
+glyph_size = 5
 fill_color = {color}
 stroke_color = {color}
 stroke_thickness = 1
+background = no
 min = 0.0000
 max = 10.00
-r0 = 0.85r
-r1 = 0.9r
+r0 = 0.855r
+r1 = 0.895r
+axis = yes
+axis_color = lgrey
+axis_thickness = 1
+axis_spacing = 5
 </plot>
 """
 
@@ -103,8 +109,9 @@ def main():
         colors = ['nyt_orange', 'nyt_yellow']
         for i in range(len(RNA_DATASETS)):
             dset = RNA_DATASETS[i]
+            dset_name = dset + "_exp.txt"
             color = colors[i]
-            f.write(EXPR_TRACK.format(expr=dset, color=color))
+            f.write(EXPR_TRACK.format(expr=dset_name, color=color))
         f.write("</plots>\n")
         f.close() 
         
