@@ -133,6 +133,16 @@ subsetByROI.DipData <- function(dd, in.roi) {
   return(DipData(dd$name, as.big.matrix(dd$genome.data[idx,]), dd$chr.names, dd$chr.lengths, dd$bin.size))
 }
 
+saveSignificantWindowsROI.DipData <- function(dd, p.vals, sig.fname, alpha=0.05, window.size=1000) {
+  cat(sum(p.vals < alpha), "locs at less than",alpha,"pval \n")
+  if (sum(p.vals < alpha) > 0) {
+    cat("Saving roi", sig.fname, "\n")
+    set <- subsetByPos.DipData(dd, which(p.vals < alpha))
+    # merging doesn't work right now
+    writeSubsetROI(set, window.size, sig.fname, merge=FALSE)
+  }
+}
+
 computeAndSaveDiffEnrich.DipData <- function(dd1, dd2, fname) {
   cat("calling diff enrich", fname, '\n')
   p.val <- diffEnrichment.DipData(dd1, dd2)

@@ -22,6 +22,7 @@ chromosomes = {chrname}
 
 <plots>
 
+layers_overflow = hide
 """
 
 PLOT="""
@@ -36,7 +37,7 @@ fill_color = {color}
 # FOR HEATMAP
 #scale_log_base = 10
 min = 0.0
-max = 90.0
+max = 350.0
 r0 = {r0}r
 r1 = {r1}r
 file = ../data/{dset}
@@ -48,12 +49,26 @@ GENE_TRACK="""
 type = text
 color = black
 file = ../data/knowngenes.txt
-r0 = 0.9r
-r1 = 1.0r
+r0 = 0.92r
+r1 = .98r
 label_size = 10p
 label_font = condensed
 padding = 0p
 rpadding = 0p
+</plot>
+
+<plot>
+show = yes
+type = tile
+file = ../data/knowngene.bed
+layers = 12
+margin = 0.02u
+thickness = 10
+orientation = out
+color = black
+r0 = 0.87r
+r1 = 0.90r
+background = no
 </plot>
 """
 
@@ -70,12 +85,27 @@ stroke_thickness = 1
 background = no
 min = 0.0000
 max = 10.00
-r0 = 0.855r
-r1 = 0.895r
+r0 = 0.81r
+r1 = 0.85r
 axis = yes
 axis_color = lgrey
 axis_thickness = 1
 axis_spacing = 5
+</plot>
+"""
+
+MK4_TRACK="""
+<plot>
+show = yes
+type = tile
+file = ../data/{mk4}
+layers = 15
+thickness = 15
+margin = 0.02u
+color = {color}
+background = no
+r0 = {r0}r
+r1 = {r1}r
 </plot>
 """
 
@@ -103,7 +133,7 @@ def main():
             else: 
                 col = 'nyt_red'
             f.write(PLOT.format(dset=track + ".txt", r0=r0, r1=r1, color=col))
-            r0 = r1 + .01
+            r0 = r1 + .001
             r1 = r0 + .05
         f.write(GENE_TRACK)
         colors = ['nyt_orange', 'nyt_yellow']
@@ -112,6 +142,8 @@ def main():
             dset_name = dset + "_exp.txt"
             color = colors[i]
             f.write(EXPR_TRACK.format(expr=dset_name, color=color))
+        f.write(MK4_TRACK.format(mk4=MK4_DATASETS[0], r0=0.45, r1=0.475, color='nyt_orange'))
+        f.write(MK4_TRACK.format(mk4=MK4_DATASETS[1], r0=0.475, r1=0.5, color='nyt_yellow'))
         f.write("</plots>\n")
         f.close() 
         

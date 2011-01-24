@@ -1,7 +1,11 @@
-writeSubsetROI <- function(set, win.size, fname) {
+# TODO Fix merging
+writeSubsetROI <- function(set, win.size, fname, merge=FALSE) {
   old.chrs <- set[,'chr']
   chrs <- unlist(sapply(old.chrs, numToChr))
   out <- data.frame(chr=chrs, start=set[,'pos'], end=set[,'pos'] + win.size)
+  if (merge) {
+    out <- mergeROIWindows(out)
+  }
   write.table(out, file=fname, sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
 }
 

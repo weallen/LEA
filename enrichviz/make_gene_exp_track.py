@@ -8,6 +8,7 @@ def read_knowngene(kgpath):
         fields = line.rstrip().split('\t')
         chr = fields[0]
         start = int(fields[1])
+        end = start + 1 
         end = int(fields[2])
         gid = fields[3]
         kg[gid] = (chr, start, end)

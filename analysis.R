@@ -13,7 +13,7 @@ source("~/src/LEA/util.R")
 source("~/src/LEA/dipdata.R")
 source("~/src/LEA/roi.R")
 
-.doROIDiff <- function(pairs, roi) {
+.doROIDiff <- function(pairs, roi, out.rootname="signif") {
 #    foreach (pair = pairs)  %do% {
   for (pair in pairs) {
     fname <- paste(paste("enriched25kb", pair[1], "vs", pair[2], sep="_"), "txt", sep=".")
@@ -26,7 +26,7 @@ source("~/src/LEA/roi.R")
     cat(sum(p.val < .1), 'locs at less than .1 pval \n')
     if (sum(p.val < .1) > 0) {
       set <- subsetByPos.DipData(dd1, which(p.val < .1))
-      writeSubsetROI(mergeROIWindows(set), 1000, paste("roi/signif", pair[1], pair[2], ".txt", sep="_"))
+      writeSubsetROI(mergeROIWindows(set), 1000, paste(paste("roi", out.rootname, sep="/"), pair[1], pair[2], ".txt", sep="_"))
     }
     cat("==============\n")
   }
@@ -39,6 +39,7 @@ diffEnrichedROI <- function() {
   me.pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
                    c("ngn_medip_1kb", "icam_medip_1kb"),
                    c("omp_medip_1kb", "ngn_medip_1kb"))
+  
   hme.pairs <- list(c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
                     c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
                     c("omp_hmedip_1kb", "icam_hmedip_1kb"))
@@ -47,6 +48,46 @@ diffEnrichedROI <- function() {
   .doROIDiff(hme.pairs, hme.roi)
 }
 
+diffEnrichedGenesAndPromoters <- function() {
+  pairs <- list(c("omp_medip_10kb", "icam_medip_10kb"),
+                c("ngn_medip_10kb", "icam_medip_10kb"),
+                c("omp_medip_10kb", "ngn_medip_10kb"),
+                c("ngn_hmedip_10kb", "icam_hmedip_10kb"),
+                c("omp_hmedip_10kb", "ngn_hmedip_10kb"),
+                c("omp_hmedip_10kb", "icam_hmedip_10kb"))
+  
+  diffEnrichedGenesROI(pairs)
+  diffEnrichedPromotersROI(pairs)
+}
+
+diffEnrichedGenesROI <- function(pairs) {
+  genes.roi <- loadROI("roi/kg_genes.txt")
+  
+  foreach (pair = pairs) %do% {
+    cat(pair[1], pair[2], "\n")
+    basename <- paste(pair[1], "_", pair[2], "_gene_diff.txt", sep="")
+    fname <- paste("gene_diff/", basename, sep="")
+    dd1 <- subsetByROI.DipData(load.DipData(pair[1]), genes.roi)
+    dd2 <- subsetByROI.DipData(load.DipData(pair[2]), genes.roi)
+    p.val <- computeAndSaveDiffEnrich.DipData(dd1, dd2, fname)
+    saveSignificantWindowsROI.DipData(dd1, p.val, paste("roi/", basename, sep=""), window.size=10000)
+  }
+}
+
+
+diffEnrichedPromotersROI <- function(pairs) {
+  prom.roi <- loadROI("roi/kg_promoters_10kb.txt")  
+  
+  foreach (pair = pairs) %do% {
+    cat(pair[1], pair[2], "\n")
+    basename <- paste(pair[1], "_", pair[2], "_prom_diff.txt", sep="")
+    fname <- paste("prom_diff/", basename, sep="")
+    dd1 <- subsetByROI.DipData(load.DipData(pair[1]), prom.roi)
+    dd2 <- subsetByROI.DipData(load.DipData(pair[2]), prom.roi)
+    p.val <- computeAndSaveDiffEnrich.DipData(dd1, dd2, fname)
+    saveSignificantWindowsROI.DipData(dd1, p.val, paste("roi/", basename, sep=""), window.size=10000) 
+  }
+}
 # Writes ROI file of all above threshold enriched windows 
 ROIAllEnriched <- function(dsets) {
   all.enriched <- unlist(sapply(dsets, function(i) {
@@ -65,6 +106,8 @@ writeEnrichedROI <- function() {
    writeSubsetROI(omp.medip$genome.data[medip.roi, c('chr', 'pos')], 25000, "roi/medip_enrich_roi.txt")
    writeSubsetROI(omp.medip$genome.data[hmedip.roi, c('chr', 'pos')], 25000, "roi/hmedip_enrich_roi.txt")
 }
+
+
 
 pairwiseDiffEnrich <- function() {
 #  pairs <- list(c("moe_hmedip_1kb", "moe_ac3_hmedip_1kb"),
@@ -109,6 +152,16 @@ convertAllDipsToDipData25kb <- function() {
     curr.dset <- loadMedips(dsetToPath(name), 25000)    
     cat("Saving dipdata", name,"\n")
     saveMedipsForDipData(curr.dset, paste(name, "25kb", sep="_"))
+  }
+}
+
+convertAllDipsToDipData100kb <- function() {
+  names <- c(MEDIP.DATASETS, HMEDIP.DATASETS)
+  foreach(name = names) %dopar% {
+    cat(name, '\n')
+    curr.dset <- loadMedips(dsetToPath(name), 100000)
+    cat("Saving dipdata", name, "\n")
+    saveMedipsForDipData(curr.dset, paste(name, "100kb", sep="_"))
   }
 }
 
