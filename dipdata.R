@@ -1,3 +1,4 @@
+library(utils)
 library(bigmemory)
 library(bigtabulate)
 library(biganalytics)
@@ -13,7 +14,7 @@ library(multtest)
 
 #options(bigmemory.typecast, warning=FALSE)
 options(bigmemory.allow.dimnames=TRUE)
-registerDoMC(cores=10)
+registerDoMC(cores=14)
 
 source("~/src/LEA/util.R")
 source("~/src/LEA/roi.R")
@@ -119,21 +120,63 @@ diffEnrichment.DipData <- function(dd1, dd2) {
   return(p.val)
 }
 
-# ROI is data frame with numeric cols
-subsetByROI.DipData <- function(dd, in.roi) {
+computeSubsetIdx.DipData <- function(dd, in.roi) {
+  cat("subsetting", dd$name, "\n")
   bin.size <- dd$bin.size[1]
-  absolute.pos <- c(1, cumsum(ceiling(dd$chr.lengths / dd$bin.size[[1]])))
+  chrs <- unique(in.roi[,1])
+#  exclude <- chrs[which(!chrs %in% dd$chr.names)]
+  bin.counts <- sapply(dd$chr.lengths,
+                       function(x) {
+                         ceiling(x / bin.size)
+                       })
+  chr.bin.pos <- sapply(1:length(bin.counts),
+                        function(x) {
+                          sum(bin.counts[1:x])
+                        })
+  pb <- txtProgressBar(min = 0, max = length(in.roi[,1]), style=3)
+  i <- 0
   idx <- foreach(curr.roi = isplitRows(in.roi, chunkSize=1), .combine=c) %do% {
-    curr.chr <- curr.roi[[1]]
-    curr.chr.start <- absolute.pos[curr.chr]
+    setTxtProgressBar(pb, i)
+    i <- i + 1
+    curr.chr <- as.numeric(curr.roi[[1]])
+    if (curr.chr == 1) {
+      curr.chr.start <- 0
+    } else {
+      curr.chr.start <- chr.bin.pos[curr.chr - 1]
+    }
     curr.roi.start <- curr.chr.start + ceiling(curr.roi[[2]] / bin.size)
     curr.roi.end <- curr.chr.start + ceiling(curr.roi[[3]] / bin.size)
+    if (curr.roi[[2]] != dd$genome.data[curr.roi.start, 'pos']) {
+      curr.roi.start <- curr.roi.start + 1
+    }
+    if (curr.roi[[3]] != dd$genome.data[curr.roi.end, 'pos']) {
+      curr.roi.end <- curr.roi.end - 1
+    }
     return(seq(curr.roi.start,curr.roi.end))
   }
-  return(DipData(dd$name, as.big.matrix(dd$genome.data[idx,]), dd$chr.names, dd$chr.lengths, dd$bin.size))
+  close(pb)
+  return(unique(idx))
 }
 
-saveSignificantWindowsROI.DipData <- function(dd, p.vals, sig.fname, alpha=0.05, window.size=1000) {
+subsetByIdx.DipData <- function(dd, idx) {
+  return(DipData(dd$name,
+                 as.big.matrix(dd$genome.data[idx,]),
+                 dd$chr.names[dd$chr.names],
+                 dd$chr.lengths[dd$chr.names],
+                 dd$bin.size[dd$chr.names]))
+}
+
+# ROI is data frame with numeric cols
+subsetByROI.DipData <- function(dd, in.roi) {
+  idx <- computeSubsetIdx.DipData(dd, in.roi)
+  return(DipData(dd$name,
+                 as.big.matrix(dd$genome.data[idx,]),
+                 dd$chr.names[dd$chr.names],
+                 dd$chr.lengths[dd$chr.names],
+                 dd$bin.size[dd$chr.names]))
+}
+
+saveSignificantWindowsROI.DipData <- function(dd, p.vals, sig.fname, alpha=0.1, window.size=1000) {
   cat(sum(p.vals < alpha), "locs at less than",alpha,"pval \n")
   if (sum(p.vals < alpha) > 0) {
     cat("Saving roi", sig.fname, "\n")
