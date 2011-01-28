@@ -105,6 +105,21 @@ foldChange.DipData <- function(dd1, dd2, type="raw") {
   return(fc)
 }
 
+rawCountsByROILoRes.DipData <- function(dd, in.roi) {
+  pb <- txtProgressBar(min = 0, max = length(in.roi[,1]), style=3)
+  i <- 0
+  roi.counts <- foreach(curr.roi = isplitRows(in.roi, chunkSize=1), .combine = c) %do% {
+    setTxtProgressBar(pb, i)
+    vals <- list(curr.roi[[1]], curr.roi[[2]], curr.roi[[3]])
+    comps <- list(c('eq', 'ge', 'le'))
+    idx <- mwhich(dd$genome.data, c('chr', 'pos', 'pos'), vals, comps)
+    i <- i + 1
+    return(sum(dd$genome.data[idx, 'raw']))  
+  }
+  close(pb)
+  return(roi.counts)
+}
+
 diffEnrichment.DipData <- function(dd1, dd2) {
   chr.idx <- bigsplit(dd1$genome.data, 'chr')
   freq <- list(dd1=dd1$genome.data, dd2=dd2$genome.data)
@@ -176,7 +191,7 @@ subsetByROI.DipData <- function(dd, in.roi) {
                  dd$bin.size[dd$chr.names]))
 }
 
-saveSignificantWindowsROI.DipData <- function(dd, p.vals, sig.fname, alpha=0.1, window.size=1000) {
+saveSignificantWindowsROI.DipData <- function(dd, p.vals, sig.fname, window.size=1000, alpha=0.0001) {
   cat(sum(p.vals < alpha), "locs at less than",alpha,"pval \n")
   if (sum(p.vals < alpha) > 0) {
     cat("Saving roi", sig.fname, "\n")
@@ -194,7 +209,7 @@ computeAndSaveDiffEnrich.DipData <- function(dd1, dd2, fname) {
   p.adj <-p.adjust(p.val, method="BH")
   tab <- data.frame(chr=dd1$genome.data[,1], pos=dd1$genome.data[,2], qval=p.adj)
   cat('writing data', fname, '\n')
-  write.table(tab, file=paste("diff_enrich", fname, sep="/"), quote=FALSE, sep=",", row.names=FALSE)
+#  write.table(tab, file=paste("diff_enrich", fname, sep="/"), quote=FALSE, sep=",", row.names=FALSE)
   return(p.adj)
 }
 

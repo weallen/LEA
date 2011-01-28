@@ -1,4 +1,6 @@
 # TODO Fix merging
+source("util.R")
+
 writeSubsetROI <- function(set, win.size, fname, merge=FALSE) {
   old.chrs <- set[,'chr']
   chrs <- unlist(sapply(old.chrs, numToChr))
@@ -40,4 +42,26 @@ mergeROIWindows <- function(roi) {
   colnames(mtx) <- c("chr", "start", "end")
   rownames(mtx) <- 1:length(mtx[,1])
   return(mtx[which(!is.na(mtx[,1])),])
+}
+
+diffEnrichmentROI <- function(enrich1, enrich2) {
+  roi1.sum <- sum(enrich1)
+  roi2.sum <- sum(enrich2)
+  p.val <- foreach(i=icount(length(enrich1)), .combine=c) %do% {    
+    cont.table <- matrix(c(enrich1[i], roi1.sum - enrich1[i],
+                           enrich2[i], roi2.sum - enrich2[i]), nrow=2, ncol=2)
+    return(fast.fisher(cont.table)$p.val)
+  }
+  return(p.val)
+}
+
+saveSignificantROI <- function(in.roi, p.vals, path, cutoff=0.1) {
+  in.roi <- as.data.frame(in.roi)
+  cat("Found", sum(p.vals < cutoff), "roi less than threshold", cutoff, "\n")
+  if (sum(p.vals < cutoff) > 0) {
+    subset.roi <- in.roi[which(p.vals < cutoff),]
+    chrs <- sapply(subset.roi$chr, numToChr)
+    subset.roi$chr <- chrs
+    write.table(subset.roi, file=path, col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
+  }
 }

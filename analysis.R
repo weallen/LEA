@@ -13,7 +13,7 @@ source("~/src/LEA/util.R")
 source("~/src/LEA/dipdata.R")
 source("~/src/LEA/roi.R")
 
-options(error=recover)
+#options(error=recover)
 
 compareCpGAndCpAHmedip <- function() {
 #  setwd("/gpfs/home/wallen/data/genome_data")
@@ -28,6 +28,35 @@ compareCpGAndCpAHmedip <- function() {
 }
 
 diffEnrichedROILoRes <- function() {
+  pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
+                c("ngn_medip_1kb", "icam_medip_1kb"),
+                c("omp_medip_1kb", "ngn_medip_1kb"),
+                c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
+                c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
+                c("omp_hmedip_1kb", "icam_hmedip_1kb"))
+  diffEnrichedFeaturesROILoRes(pairs, "roi/kg_genes.txt", "genes")
+  diffEnrichedFeaturesROILoRes(pairs, "roi/kg_promoters_10kb.txt", "prom")
+#  diffEnrichedFeaturesROILoRes(pairs, "roi/kg_exons.txt", "exons")
+#  diffEnrichedFeaturesROILoRes(pairs, "roi/kg_introns.txt", "introns")
+#  diffEnrichedFeaturesROILoRes(pairs, "roi/cpgislands.txt", "cpgislands")
+
+}
+
+diffEnrichedFeaturesROILoRes <- function(pairs, roi.path, type) {
+  if (!file.exists(roi.path)) {
+    quit(paste("roi file at", roi.path, "does not exist", sep=""))
+  }
+  feat.roi <- loadROI(roi.path)
+  colnames(feat.roi) <- c('chr', 'start', 'end')
+  path.ex <- paste("_", type, "_diff_lores.txt", sep="")
+  foreach (pair = pairs) %dopar% {
+    cat(pair[1], pair[2], "\n")
+    basename <- paste(pair[1], "_", pair[2], path.ex, sep="") 
+    enrich1 <- rawCountsByROILoRes.DipData(load.DipData(pair[1]), feat.roi) 
+    enrich2 <- rawCountsByROILoRes.DipData(load.DipData(pair[2]), feat.roi) 
+    p.val <- diffEnrichmentROI(enrich1, enrich2)
+    saveSignificantROI(feat.roi, p.val, paste("diff_enrich_lores/", basename, sep=""), 0.0001)
+  }  
 }
 
 .doROIDiff <- function(pairs, roi, out.rootname="signif") {
@@ -66,62 +95,55 @@ diffEnrichedROI <- function() {
 }
 
 diffEnrichedGenesAndPromoters <- function() {
-  pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
+  me.pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
                 c("ngn_medip_1kb", "icam_medip_1kb"),
-                c("omp_medip_1kb", "ngn_medip_1kb"),
-                c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
+                c("omp_medip_1kb", "ngn_medip_1kb"))
+  hme.pairs <- list(c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
                 c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
                 c("omp_hmedip_1kb", "icam_hmedip_1kb"))
   
-  diffEnrichedPromotersROI(pairs, 1000)
-  diffEnrichedGenesROI(pairs, 1000)
-
-  pairs <- list(c("omp_medip", "icam_medip"),
-                c("ngn_medip", "icam_medip"),
-                c("omp_medip", "ngn_medip"),
-                c("ngn_hmedip", "icam_hmedip"),
-                c("omp_hmedip", "ngn_hmedip"),
-                c("omp_hmedip", "icam_hmedip"))
-  diffEnrichedPromotersROI(pairs, 100)
-  diffEnrichedGenesROI(pairs, 100)
+  diffEnrichedPromotersROI(hme.pairs, 1000)
+  diffEnrichedGenesROI(hme.pairs, 1000)
 }
 
-diffEnrichedExonsIntronsAndCpGIslands <- function() {
-  pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
+diffEnrichedEverything <- function() {
+  me.pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
                 c("ngn_medip_1kb", "icam_medip_1kb"),
-                c("omp_medip_1kb", "ngn_medip_1kb"),
-                c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
+                c("omp_medip_1kb", "ngn_medip_1kb"))  
+  hme.pairs <- list(c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
                 c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
                 c("omp_hmedip_1kb", "icam_hmedip_1kb"))
-
-  diffEnrichedExonsROI(pairs, 1000)
-  diffEnrichedIntronsROI(pairs, 1000)
-  diffEnrichedCpGIslandsROI(pairs, 1000)
+  
+  diffEnrichedPromotersROI(hme.pairs, 1000)
+  diffEnrichedGenesROI(hme.pairs, 1000)
+  diffEnrichedExonsROI(hme.pairs, 1000)
+  diffEnrichedIntronsROI(hme.pairs, 1000)
+  diffEnrichedCpGIslandsROI(hme.pairs, 1000)
 }
 
 diffEnrichedIntronsROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_introns.txt", "introns")
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_introns.txt", "introns", alpha=0.001)
 }
 
 diffEnrichedExonsROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_exons.txt", "exons")
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_exons.txt", "exons", alpha=0.001)
 }
 
 diffEnrichedCpGIslandsROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/cpgislands.txt", "cpgislands")
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/cpgislands.txt", "cpgislands", alpha=0.001)
 }
 
 diffEnrichedGenesROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_genes.txt", "genes")
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_genes.txt", "gene", alpha=0.001)
 }
 
 
 diffEnrichedPromotersROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_promoters_10kb.txt", "prom")
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_promoters_10kb.txt", "prom", alpha=0.001)
 }
 
 
-diffEnrichedFeaturesROI <- function(pairs, win.size, roi.path, type) {
+diffEnrichedFeaturesROI <- function(pairs, win.size, roi.path, type, alpha=0.001) {
   if (!file.exists(roi.path)) {
     quit(paste("roi file at", roi.path, "does not exist", sep=""))
   }
@@ -137,7 +159,7 @@ diffEnrichedFeaturesROI <- function(pairs, win.size, roi.path, type) {
     dd1 <- subsetByIdx.DipData(load.DipData(pair[1]), idx)
     dd2 <- subsetByIdx.DipData(load.DipData(pair[2]), idx)
     p.val <- computeAndSaveDiffEnrich.DipData(dd1, dd2, fname)
-    saveSignificantWindowsROI.DipData(dd1, p.val, paste("diff_enrich_roi/", basename, sep=""), window.size=win.size)
+    saveSignificantWindowsROI.DipData(dd1, p.val, paste("diff_enrich_roi/", basename, sep=""), window.size=win.size, alpha=alpha)
   }
 }
 
