@@ -106,17 +106,52 @@ foldChange.DipData <- function(dd1, dd2, type="raw") {
 }
 
 rawCountsByROILoRes.DipData <- function(dd, in.roi) {
+  cat("computing raw counts by roi for", dd$name, "\n")
+  bin.size <- dd$bin.size[1]
+  chrs <- unique(in.roi[,1])
+#  exclude <- chrs[which(!chrs %in% dd$chr.names)]
+  bin.counts <- sapply(dd$chr.lengths,
+                       function(x) {
+                         ceiling(x / bin.size)
+                       })
+  chr.bin.pos <- sapply(1:length(bin.counts),
+                        function(x) {
+                          sum(bin.counts[1:x])
+                        })
   pb <- txtProgressBar(min = 0, max = length(in.roi[,1]), style=3)
   i <- 0
-  roi.counts <- foreach(curr.roi = isplitRows(in.roi, chunkSize=1), .combine = c) %do% {
+  roi.counts <- foreach(curr.roi = isplitRows(in.roi, chunkSize=1), .combine=c) %do% {
     setTxtProgressBar(pb, i)
-    vals <- list(curr.roi[[1]], curr.roi[[2]], curr.roi[[3]])
-    comps <- list(c('eq', 'ge', 'le'))
-    idx <- mwhich(dd$genome.data, c('chr', 'pos', 'pos'), vals, comps)
     i <- i + 1
-    return(sum(dd$genome.data[idx, 'raw']))  
+    curr.chr <- as.numeric(curr.roi[[1]])
+    if (curr.chr == 1) {
+      curr.chr.start <- 0
+    } else {
+      curr.chr.start <- chr.bin.pos[curr.chr - 1]
+    }
+    curr.roi.start <- curr.chr.start + ceiling(curr.roi[[2]] / bin.size)
+    curr.roi.end <- curr.chr.start + ceiling(curr.roi[[3]] / bin.size)
+    if (curr.roi[[2]] != dd$genome.data[curr.roi.start, 'pos']) {
+      curr.roi.start <- curr.roi.start + 1
+    }
+    if (curr.roi[[3]] != dd$genome.data[curr.roi.end, 'pos']) {
+      curr.roi.end <- curr.roi.end - 1
+    }
+    return(sum(dd$genome.data[seq(curr.roi.start,curr.roi.end), 'raw']))
   }
   close(pb)
+
+#  pb <- txtProgressBar(min = 0, max = length(in.roi[,1]), style=3)
+#  i <- 0
+#  roi.counts <- foreach(curr.roi = isplitRows(in.roi, chunkSize=1), .combine = c) %do% {
+#    setTxtProgressBar(pb, i)
+#    vals <- list(curr.roi[[1]], curr.roi[[2]], curr.roi[[3]])
+#    comps <- list(c('eq', 'ge', 'le'))
+#    idx <- mwhich(dd$genome.data, c('chr', 'pos', 'pos'), vals, comps)
+#    i <- i + 1
+#    return(sum(dd$genome.data[idx, 'raw']))  
+#  }
+#  close(pb)
   return(roi.counts)
 }
 
@@ -191,11 +226,11 @@ subsetByROI.DipData <- function(dd, in.roi) {
                  dd$bin.size[dd$chr.names]))
 }
 
-saveSignificantWindowsROI.DipData <- function(dd, p.vals, sig.fname, window.size=1000, alpha=0.0001) {
-  cat(sum(p.vals < alpha), "locs at less than",alpha,"pval \n")
-  if (sum(p.vals < alpha) > 0) {
+saveSignificantWindowsROI.DipData <- function(dd, fc, p.vals, sig.fname, window.size=1000, alpha=0.0001) {
+  cat(sum(p.vals < alpha & abs(fc) > 2 & !is.na(fc)), "locs at less than",alpha,"pval and fc > 2\n")
+  if (sum(p.vals < alpha & abs(fc) > 2 & !is.na(fc)) > 0) {
     cat("Saving roi", sig.fname, "\n")
-    set <- subsetByPos.DipData(dd, which(p.vals < alpha))
+    set <- subsetByPos.DipData(dd, which(p.vals < alpha & abs(fc) > 2 & !is.na(fc)))
     # merging doesn't work right now
     writeSubsetROI(set, window.size, sig.fname, merge=FALSE)
   }

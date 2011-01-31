@@ -15,31 +15,20 @@ source("~/src/LEA/roi.R")
 
 #options(error=recover)
 
-compareCpGAndCpAHmedip <- function() {
-#  setwd("/gpfs/home/wallen/data/genome_data")
-#  window.1kb.stats <- read.table("mm9_window_1kb_stats.txt",
-#                                 header=TRUE, sep="\t")
-  mm9.window.1kb.stats <- load("/gpfs/home/wallen/data/genome_data/mm9_window_1kb_stats.Rdata")
-  omp.medip <- load.DipData("omp_medip_1kb")
-  omp.medip.non.outliers <- which(omp.medip$genome.data[,'raw'] < 1000)
-  png("omp_medip_cpg.png")
-  plot(mm9.window.1kb.stats$CpG[omp.medip.non.outliers],
-       omp.medip$genome.data[omp.medip.non.outliers, 'raw'], pch=20)
-}
 
 diffEnrichedROILoRes <- function() {
-  pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
-                c("ngn_medip_1kb", "icam_medip_1kb"),
-                c("omp_medip_1kb", "ngn_medip_1kb"),
-                c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
-                c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
-                c("omp_hmedip_1kb", "icam_hmedip_1kb"))
+  pairs <- list(c("omp_medip", "icam_medip"),
+                c("ngn_medip", "icam_medip"),
+                c("omp_medip", "ngn_medip"),
+                c("ngn_hmedip", "icam_hmedip"),
+                c("omp_hmedip", "ngn_hmedip"),
+                c("omp_hmedip", "icam_hmedip"))
+  diffEnrichedFeaturesROILoRes(pairs, "roi/kg_tss.txt", "tss")
   diffEnrichedFeaturesROILoRes(pairs, "roi/kg_genes.txt", "genes")
   diffEnrichedFeaturesROILoRes(pairs, "roi/kg_promoters_10kb.txt", "prom")
-#  diffEnrichedFeaturesROILoRes(pairs, "roi/kg_exons.txt", "exons")
-#  diffEnrichedFeaturesROILoRes(pairs, "roi/kg_introns.txt", "introns")
-#  diffEnrichedFeaturesROILoRes(pairs, "roi/cpgislands.txt", "cpgislands")
-
+  diffEnrichedFeaturesROILoRes(pairs, "roi/kg_exons.txt", "exons")
+  diffEnrichedFeaturesROILoRes(pairs, "roi/kg_introns.txt", "introns")
+  diffEnrichedFeaturesROILoRes(pairs, "roi/cpgislands.txt", "cpgislands")
 }
 
 diffEnrichedFeaturesROILoRes <- function(pairs, roi.path, type) {
@@ -53,9 +42,10 @@ diffEnrichedFeaturesROILoRes <- function(pairs, roi.path, type) {
     cat(pair[1], pair[2], "\n")
     basename <- paste(pair[1], "_", pair[2], path.ex, sep="") 
     enrich1 <- rawCountsByROILoRes.DipData(load.DipData(pair[1]), feat.roi) 
-    enrich2 <- rawCountsByROILoRes.DipData(load.DipData(pair[2]), feat.roi) 
+    enrich2 <- rawCountsByROILoRes.DipData(load.DipData(pair[2]), feat.roi)
+    fc <- foldchange(enrich1, enrich2)
     p.val <- diffEnrichmentROI(enrich1, enrich2)
-    saveSignificantROI(feat.roi, p.val, paste("diff_enrich_lores/", basename, sep=""), 0.0001)
+    saveSignificantROI(feat.roi, fc, p.val, paste("diff_enrich_lores/", basename, sep=""), 0.01)
   }  
 }
 
@@ -108,38 +98,43 @@ diffEnrichedGenesAndPromoters <- function() {
 
 diffEnrichedEverything <- function() {
   me.pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
-                c("ngn_medip_1kb", "icam_medip_1kb"),
-                c("omp_medip_1kb", "ngn_medip_1kb"))  
+                   c("ngn_medip_1kb", "icam_medip_1kb"),
+                   c("omp_medip_1kb", "ngn_medip_1kb"))
   hme.pairs <- list(c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
-                c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
-                c("omp_hmedip_1kb", "icam_hmedip_1kb"))
-  
-  diffEnrichedPromotersROI(hme.pairs, 1000)
-  diffEnrichedGenesROI(hme.pairs, 1000)
-  diffEnrichedExonsROI(hme.pairs, 1000)
-  diffEnrichedIntronsROI(hme.pairs, 1000)
-  diffEnrichedCpGIslandsROI(hme.pairs, 1000)
-}
-
-diffEnrichedIntronsROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_introns.txt", "introns", alpha=0.001)
-}
-
-diffEnrichedExonsROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_exons.txt", "exons", alpha=0.001)
-}
-
-diffEnrichedCpGIslandsROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/cpgislands.txt", "cpgislands", alpha=0.001)
-}
-
-diffEnrichedGenesROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_genes.txt", "gene", alpha=0.001)
+                   c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
+                   c("omp_hmedip_1kb", "icam_hmedip_1kb"))
+  #diffEnrichedTSSROI(pairs, 1000)
+  diffEnrichedPromotersROI(hme.pairs, 1000, 0.0001)
+  diffEnrichedGenesROI(hme.pairs, 1000, 0.0001)
+  diffEnrichedExonsROI(hme.pairs, 1000, 0.0001)
+#  diffEnrichedIntronsROI(pairs, 1000)
+#  diffEnrichedCpGIslandsROI(pairs, 1000)
 }
 
 
-diffEnrichedPromotersROI <- function(pairs, win.size) {
-  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_promoters_10kb.txt", "prom", alpha=0.001)
+diffEnrichedTSSROI <- function(pairs, win.size,alpha=0.1) {
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_tss.txt", "tss", alpha=alpha)
+}
+
+diffEnrichedIntronsROI <- function(pairs, win.size, alpha=0.1) {
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_introns.txt", "introns", alpha=alpha)
+}
+
+diffEnrichedExonsROI <- function(pairs, win.size, alpha=0.1) {
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_exons.txt", "exons", alpha=alpha)
+}
+
+diffEnrichedCpGIslandsROI <- function(pairs, win.size, alpha=0.1) {
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/cpgislands.txt", "cpgislands", alpha=alpha)
+}
+
+diffEnrichedGenesROI <- function(pairs, win.size, alpha=0.1) {
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_genes.txt", "gene", alpha=alpha)
+}
+
+
+diffEnrichedPromotersROI <- function(pairs, win.size, alpha=0.1) {
+  diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_promoters_10kb.txt", "prom", alpha=alpha)
 }
 
 
@@ -158,8 +153,9 @@ diffEnrichedFeaturesROI <- function(pairs, win.size, roi.path, type, alpha=0.001
     fname <- paste(diff.out.dir, basename, sep="")
     dd1 <- subsetByIdx.DipData(load.DipData(pair[1]), idx)
     dd2 <- subsetByIdx.DipData(load.DipData(pair[2]), idx)
+    fc <- foldchange(dd1$genome.data[,'raw'], dd2$genome.data[,'raw'])
     p.val <- computeAndSaveDiffEnrich.DipData(dd1, dd2, fname)
-    saveSignificantWindowsROI.DipData(dd1, p.val, paste("diff_enrich_roi/", basename, sep=""), window.size=win.size, alpha=alpha)
+    saveSignificantWindowsROI.DipData(dd1, fc, p.val, paste("diff_enrich_roi/", basename, sep=""), window.size=win.size, alpha=alpha)
   }
 }
 

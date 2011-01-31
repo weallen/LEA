@@ -66,29 +66,34 @@ foldChangeExprHist.DiffEnrich <- function(de) {
 }
 
 
-omp.ngn.medip.prom <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "prom", "ompgfp", "ngnhigh")
-omp.ngn.medip.gene <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "gene", "ompgfp", "ngnhigh")
-omp.ngn.medip.intron <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "introns", "ompgfp", "ngnhigh")
-omp.ngn.medip.exon <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "exons", "ompgfp", "ngnhigh")
+#omp.ngn.medip.prom <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "prom", "ompgfp", "ngnhigh")
+#omp.ngn.medip.gene <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "gene", "ompgfp", "ngnhigh")
+#omp.ngn.medip.intron <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "introns", "ompgfp", "ngnhigh")
+#omp.ngn.medip.exon <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "exons", "ompgfp", "ngnhigh")
 
-ngn.icam.hmedip.prom <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "prom", "ompgfp", "ngnhigh")
-ngn.icam.hmedip.gene <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "gene", "ompgfp", "ngnhigh")
-ngn.icam.hmedip.intron <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "introns", "ompgfp", "ngnhigh")
-ngn.icam.hmedip.exon <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "exons", "ompgfp", "ngnhigh")
+#ngn.icam.hmedip.prom <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "prom", "ompgfp", "ngnhigh")
+#ngn.icam.hmedip.gene <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "gene", "ompgfp", "ngnhigh")
+#ngn.icam.hmedip.intron <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "introns", "ompgfp", "ngnhigh")
+#ngn.icam.hmedip.exon <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "exons", "ompgfp", "ngnhigh")
 
-omp.ngn.medip.prom.lores <-  load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "prom", "ompgfp", "ngnhigh", lores=TRUE)
-omp.ngn.medip.gene.lores <-  load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "genes", "ompgfp", "ngnhigh", lores=TRUE)
-ngn.icam.medip.prom.lores <- load.DiffEnrich("ngn_medip_1kb", "icam_medip_1kb", "prom", "ompgfp", "ngnhigh", lores=TRUE)
-ngn.icam.medip.gene.lores <- load.DiffEnrich("ngn_medip_1kb", "icam_medip_1kb", "genes", "ompgfp", "ngnhigh", lores=TRUE)
+omp.ngn.medip.prom.lores <-  load.DiffEnrich("omp_hmedip_1kb", "ngn_hmedip_1kb", "prom", "ompgfp", "ngnhigh", lores=FALSE)
+omp.ngn.medip.gene.lores <-  load.DiffEnrich("omp_hmedip_1kb", "ngn_hmedip_1kb", "gene", "ompgfp", "ngnhigh", lores=FALSE)
+omp.ngn.medip.exon.lores <-  load.DiffEnrich("omp_hmedip_1kb", "ngn_hmedip_1kb", "exons", "ompgfp", "ngnhigh", lores=FALSE)
 
-omp.icam.hmedip.prom.lores <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "prom", "ompgfp", "ngnhigh", lores=TRUE)
-omp.icam.hmedip.gene.lores <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "genes", "ompgfp", "ngnhigh", lores=TRUE)
+ngn.icam.hmedip.prom.lores <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "prom", "ompgfp", "ngnhigh", lores=FALSE)
+ngn.icam.hmedip.gene.lores <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "gene", "ompgfp", "ngnhigh", lores=FALSE)
+ngn.icam.hmedip.exon.lores <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "exons", "ompgfp", "ngnhigh", lores=FALSE)
 
-par(mfrow=c(2,4))
+
+par(mfrow=c(2,3))
 exprPlot.DiffEnrich(omp.ngn.medip.prom.lores)
 exprPlot.DiffEnrich(omp.ngn.medip.gene.lores)
-exprPlot.DiffEnrich(ngn.icam.medip.prom.lores)
-exprPlot.DiffEnrich(ngn.icam.medip.gene.lores)
+exprPlot.DiffEnrich(omp.ngn.medip.exon.lores)
+
+exprPlot.DiffEnrich(ngn.icam.hmedip.prom.lores)
+exprPlot.DiffEnrich(ngn.icam.hmedip.gene.lores)
+exprPlot.DiffEnrich(ngn.icam.hmedip.exon.lores)
+
 
 #exprPlot.DiffEnrich(omp.icam.hmedip.prom.lores)
 #exprPlot.DiffEnrich(omp.icam.hmedip.gene.lores)

@@ -89,10 +89,13 @@ def do_comparison(type):
             elif type == "hires":
                 outfile = DATA + "diff_intersect_roi/" + rootname[0] + "_intersect.bed"
             index_name = ""
-            print name
+            print name            
             if re.search("prom", name):
                 print 'promoter'
-                index_name = "kg_promoters_10kb.bed"                
+                index_name = "kg_promoters_10kb.bed"
+            elif re.search("tss", name):
+                print "tss"
+                index_name = "kg_tss.bed"
             elif re.search("gene", name) or re.search("genes", name):
                 index_name = "knowngene.bed"
             elif re.search('intron', name):

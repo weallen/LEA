@@ -1,5 +1,5 @@
 # TODO Fix merging
-source("util.R")
+source("~/src/LEA/util.R")
 
 writeSubsetROI <- function(set, win.size, fname, merge=FALSE) {
   old.chrs <- set[,'chr']
@@ -55,11 +55,11 @@ diffEnrichmentROI <- function(enrich1, enrich2) {
   return(p.val)
 }
 
-saveSignificantROI <- function(in.roi, p.vals, path, cutoff=0.1) {
-  in.roi <- as.data.frame(in.roi)
-  cat("Found", sum(p.vals < cutoff), "roi less than threshold", cutoff, "\n")
-  if (sum(p.vals < cutoff) > 0) {
-    subset.roi <- in.roi[which(p.vals < cutoff),]
+saveSignificantROI <- function(in.roi, fc, p.vals, path, cutoff=0.1) {
+  in.roi <- as.data.frame(in.roi)  
+  cat("Found", sum(abs(fc) > 2 & p.vals < cutoff), "roi satisfying fc > 2 and less than cutoff", cutoff, "\n")
+  if (sum(abs(fc) > 2 & p.vals < cutoff)) {
+    subset.roi <- in.roi[abs(fc) > 2 & p.vals < cutoff,]
     chrs <- sapply(subset.roi$chr, numToChr)
     subset.roi$chr <- chrs
     write.table(subset.roi, file=path, col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
