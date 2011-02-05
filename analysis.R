@@ -16,6 +16,16 @@ source("~/src/LEA/roi.R")
 #options(error=recover)
 
 
+diffEnrichedMK4LoRes <- function() {
+  omp.ngn.pairs <- list(c("omp_medip", "ngn_medip"))
+  ngn.icam.pairs <- list(c("ngn_medip", "icam_medip"))
+  diffEnrichedFeaturesROILoRes(omp.ngn.pairs, "roi/ngn_mk4_intergenic.txt", "ngn_mk4")
+  diffEnrichedFeaturesROILoRes(omp.ngn.pairs, "roi/omp_mk4_intergenic.txt", "omp_mk4")
+
+  diffEnrichedFeaturesROILoRes(ngn.icam.pairs, "roi/ngn_mk4_intergenic.txt", "ngn_mk4")
+  diffEnrichedFeaturesROILoRes(ngn.icam.pairs, "roi/omp_mk4_intergenic.txt", "omp_mk4")
+}
+
 diffEnrichedROILoRes <- function() {
   pairs <- list(c("omp_medip", "icam_medip"),
                 c("ngn_medip", "icam_medip"),
@@ -104,9 +114,9 @@ diffEnrichedEverything <- function() {
                    c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
                    c("omp_hmedip_1kb", "icam_hmedip_1kb"))
   #diffEnrichedTSSROI(pairs, 1000)
-  diffEnrichedPromotersROI(hme.pairs, 1000, 0.0001)
-  diffEnrichedGenesROI(hme.pairs, 1000, 0.0001)
-  diffEnrichedExonsROI(hme.pairs, 1000, 0.0001)
+  diffEnrichedPromotersROI(hme.pairs, 1000, 0.01)
+  diffEnrichedGenesROI(hme.pairs, 1000, 0.01)
+  diffEnrichedExonsROI(hme.pairs, 1000, 0.01)
 #  diffEnrichedIntronsROI(pairs, 1000)
 #  diffEnrichedCpGIslandsROI(pairs, 1000)
 }
