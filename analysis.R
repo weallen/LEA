@@ -32,7 +32,9 @@ diffEnrichedROILoRes <- function() {
                 c("omp_medip", "ngn_medip"),
                 c("ngn_hmedip", "icam_hmedip"),
                 c("omp_hmedip", "ngn_hmedip"),
-                c("omp_hmedip", "icam_hmedip"))
+                c("omp_hmedip", "icam_hmedip"),
+                c("moe_hmedip", "moe_ac3_hmedip"),
+                c("moe_medip", "moe_ac3_medip"))
   diffEnrichedFeaturesROILoRes(pairs, "roi/kg_tss.txt", "tss")
   diffEnrichedFeaturesROILoRes(pairs, "roi/kg_genes.txt", "genes")
   diffEnrichedFeaturesROILoRes(pairs, "roi/kg_promoters_10kb.txt", "prom")
@@ -80,8 +82,7 @@ diffEnrichedFeaturesROILoRes <- function(pairs, roi.path, type) {
 
 diffEnrichedROI <- function() {
   me.roi <- loadROI("roi/medip_enrich_roi.txt")
-  hme.roi <- loadROI("roi/hmedip_enrich_roi.txt")
-  
+  hme.roi <- loadROI("roi/hmedip_enrich_roi.txt")  
   me.pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
                    c("ngn_medip_1kb", "icam_medip_1kb"),
                    c("omp_medip_1kb", "ngn_medip_1kb"))
@@ -107,17 +108,19 @@ diffEnrichedGenesAndPromoters <- function() {
 }
 
 diffEnrichedEverything <- function() {
-  me.pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
-                   c("ngn_medip_1kb", "icam_medip_1kb"),
-                   c("omp_medip_1kb", "ngn_medip_1kb"))
-  hme.pairs <- list(c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
-                   c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
-                   c("omp_hmedip_1kb", "icam_hmedip_1kb"))
-  #diffEnrichedTSSROI(pairs, 1000)
-  diffEnrichedPromotersROI(hme.pairs, 1000, 0.01)
-  diffEnrichedGenesROI(hme.pairs, 1000, 0.01)
-  diffEnrichedExonsROI(hme.pairs, 1000, 0.01)
-#  diffEnrichedIntronsROI(pairs, 1000)
+  pairs <- list(c("omp_medip_1kb", "icam_medip_1kb"),
+                c("ngn_medip_1kb", "icam_medip_1kb"),
+                c("omp_medip_1kb", "ngn_medip_1kb"),
+                c("ngn_hmedip_1kb", "icam_hmedip_1kb"),
+                c("omp_hmedip_1kb", "ngn_hmedip_1kb"),
+                c("omp_hmedip_1kb", "icam_hmedip_1kb"),
+                c("moe_hmedip_1kb", "moe_ac3_hmedip_1kb"),
+                c("moe_medip_1kb", "moe_ac3_medip_1kb"))
+#  diffEnrichedTSSROI(pairs, 1000, 0.01)
+  diffEnrichedPromotersROI(pairs, 1000, 0.01)
+  diffEnrichedGenesROI(pairs, 1000, 0.01)
+  diffEnrichedExonsROI(pairs, 1000, 0.01)
+#  diffEnrichedIntronsROI(pairs, 1000, 0.01)
 #  diffEnrichedCpGIslandsROI(pairs, 1000)
 }
 
@@ -141,7 +144,6 @@ diffEnrichedCpGIslandsROI <- function(pairs, win.size, alpha=0.1) {
 diffEnrichedGenesROI <- function(pairs, win.size, alpha=0.1) {
   diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_genes.txt", "gene", alpha=alpha)
 }
-
 
 diffEnrichedPromotersROI <- function(pairs, win.size, alpha=0.1) {
   diffEnrichedFeaturesROI(pairs, win.size, "roi/kg_promoters_10kb.txt", "prom", alpha=alpha)
@@ -284,10 +286,30 @@ convertHMedipsToDipData <- function() {
   names <- c("omp_hmedip", "ngn_hmedip", "icam_hmedip", "moe_ac3_hmedip", "moe_hmedip")
   foreach(name = names) %dopar% {
     cat(name, "\n")
-    cat("Loading hmedips for", name, " \n")
+    cat("Loading hmedips for", name, " at 100bp rez\n")
     curr.dset <- loadMedips(dsetToPath(name), 100)    
     cat("Saving dipdata", name,"\n")
     saveMedipsForDipData(curr.dset, name)
+
+    cat("Loading hmedips for", name, " at 1kb rez\n")
+    curr.dset <- loadMedips(dsetToPath(name), 1000)    
+    cat("Saving dipdata", name,"\n")
+    saveMedipsForDipData(curr.dset, paste(name, "_1kb", sep=""))
+
+    cat("Loading hmedips for", name, " at 10kb rez\n")
+    curr.dset <- loadMedips(dsetToPath(name), 10000)    
+    cat("Saving dipdata", name,"\n")
+    saveMedipsForDipData(curr.dset, paste(name, "_10kb", sep=""))
+
+    cat("Loading hmedips for", name, " at 25kb rez\n")
+    curr.dset <- loadMedips(dsetToPath(name), 25000)    
+    cat("Saving dipdata", name,"\n")
+    saveMedipsForDipData(curr.dset, paste(name, "_25kb", sep=""))
+
+    cat("Loading hmedips for", name, " at 100kb rez\n")
+    curr.dset <- loadMedips(dsetToPath(name), 100000)    
+    cat("Saving dipdata", name,"\n")
+    saveMedipsForDipData(curr.dset, paste(name, "_100kb", sep=""))
   }
 }
 

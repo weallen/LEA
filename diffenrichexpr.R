@@ -29,7 +29,11 @@ load.DiffEnrich <- function(diff1, diff2, type, exp1.name, exp2.name, lores=FALS
   exp2.fname <- paste(exp2.name, "txt", sep=".")
   old.wd <- getwd()
   setwd(DATA.PATH)
-  diff.enrich <- as.vector(read.table(paste("diff_uniq_genes", de.fname, sep="/"), header=FALSE)$V1)
+  if (lores) {
+    diff.enrich <- as.vector(read.table(paste("diff_uniq_genes/lores", de.fname, sep="/"), header=FALSE)$V1)
+  } else {
+    diff.enrich <- as.vector(read.table(paste("diff_uniq_genes/hires", de.fname, sep="/"), header=FALSE)$V1)
+  }
   data.exp1 <- read.table(paste("gene_expr/cufflinks", exp1.fname, sep="/"), header=FALSE, sep="\t")
   colnames(data.exp1) <- c("gene", "rpkm")
   data.exp2 <- read.table(paste("gene_expr/cufflinks", exp2.fname, sep="/"), header=FALSE, sep="\t")
@@ -50,13 +54,13 @@ getDiffEnrichedExpr.DiffEnrich <- function(de) {
 
 exprPlot.DiffEnrich <- function(de) {
   expr <- getDiffEnrichedExpr.DiffEnrich(de)
-  plot(log2(expr$exp1), log2(expr$exp2), pch=20, main=de$diff.enriched.name)
+  plot(log2(expr$exp1+1), log2(expr$exp2+1), pch='.', main=de$diff.enriched.name, col='blue')
 }
 
 foldChangeExprBoxPlot.DiffEnrich <- function(de) {
   expr <- getDiffEnrichedExpr.DiffEnrich(de)
   fc <- foldchange(expr$exp1, expr$exp2)
-  boxplot(fc, ylim=c(-20,20), main=de$diff.enriched.name)
+  boxplot(fc, main=de$diff.enriched.name, ylim=c(-60,40))
 }
 
 foldChangeExprHist.DiffEnrich <- function(de) {
@@ -65,40 +69,129 @@ foldChangeExprHist.DiffEnrich <- function(de) {
   hist(fc, main=de$diff.enriched.name)
 }
 
+ngnIcamComp <- function(name1, name2, type, lores=FALSE) {
+  return(load.DiffEnrich(name1, name2, type, "ngn_expr", "icam_expr", lores=lores))
+}
 
-#omp.ngn.medip.prom <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "prom", "ompgfp", "ngnhigh")
-#omp.ngn.medip.gene <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "gene", "ompgfp", "ngnhigh")
-#omp.ngn.medip.intron <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "introns", "ompgfp", "ngnhigh")
-#omp.ngn.medip.exon <- load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "exons", "ompgfp", "ngnhigh")
+ompNgnComp <- function(name1, name2, type, lores=FALSE) {
+  return(load.DiffEnrich(name1, name2, type, "omp_expr", "ngn_expr", lores=lores))
+}
 
-#ngn.icam.hmedip.prom <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "prom", "ompgfp", "ngnhigh")
-#ngn.icam.hmedip.gene <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "gene", "ompgfp", "ngnhigh")
-#ngn.icam.hmedip.intron <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "introns", "ompgfp", "ngnhigh")
-#ngn.icam.hmedip.exon <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "exons", "ompgfp", "ngnhigh")
+drawPlotsHires <- function() {
+  par(mfrow=c(2, 3))
+  exprPlot.DiffEnrich(ompNgnComp("omp_hmedip_1kb", "ngn_hmedip_1kb", "prom"))
+  exprPlot.DiffEnrich(ompNgnComp("omp_hmedip_1kb", "ngn_hmedip_1kb", "prom"))
+  exprPlot.DiffEnrich(ompNgnComp("omp_medip_1kb", "ngn_medip_1kb", "prom"))
+  
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_hmedip_1kb", "icam_hmedip_1kb", "prom"))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_hmedip_1kb", "icam_hmedip_1kb", "gene"))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_medip_1kb", "icam_medip_1kb", "prom"))
+}
 
-omp.ngn.medip.prom.lores <-  load.DiffEnrich("omp_medip", "ngn_medip", "prom", "omp_expr", "ngn_expr", lores=TRUE)
-omp.ngn.medip.gene.lores <-  load.DiffEnrich("omp_medip", "ngn_medip", "genes", "omp_expr", "ngn_expr", lores=TRUE)
-omp.ngn.medip.exon.lores <-  load.DiffEnrich("omp_medip_1kb", "ngn_medip_1kb", "exons", "omp_expr", "ngn_expr", lores=FALSE)
+drawMePlotsLores <- function() {
+  par(mfrow=c(2,5))
+  exprPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "prom", lores=TRUE))
+  exprPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "genes", lores=TRUE))
+  exprPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "exons", lores=TRUE))
+  exprPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "introns", lores=TRUE))
+  exprPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "tss", lores=TRUE))
+  
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "prom", lores=TRUE))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "genes", lores=TRUE))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "exons", lores=TRUE))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "introns", lores=TRUE))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "tss", lores=TRUE))
 
-ngn.icam.hmedip.prom.lores <- load.DiffEnrich("ngn_hmedip", "icam_hmedip", "prom", "icam_expr", "ngn_expr", lores=TRUE)
-ngn.icam.hmedip.gene.lores <- load.DiffEnrich("ngn_hmedip", "icam_hmedip", "genes", "icam_expr", "ngn_expr", lores=TRUE)
+}
 
-omp.ngn.hmedip.prom <- load.DiffEnrich("omp_hmedip_1kb", "ngn_hmedip_1kb", "prom", "ngn_expr", "icam_expr")
-omp.ngn.hmedip.gene <- load.DiffEnrich("omp_hmedip_1kb", "ngn_hmedip_1kb", "gene", "ngn_expr", "icam_expr")
+drawHmePlotsLores <- function() {
+  par(mfrow=c(2,5))
+  exprPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "prom", lores=TRUE))
+  exprPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "genes", lores=TRUE))
+  exprPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "exons", lores=TRUE))
+  exprPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "introns", lores=TRUE))
+  exprPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "tss", lores=TRUE))
+  
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "prom", lores=TRUE))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "genes", lores=TRUE))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "exons", lores=TRUE))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "introns", lores=TRUE))
+  exprPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "tss", lores=TRUE))
+}
 
-ngn.icam.hmedip.prom <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "prom", "ngn_expr",  "omp_expr")
-ngn.icam.hmedip.gene <- load.DiffEnrich("ngn_hmedip_1kb", "icam_hmedip_1kb", "gene", "ngn_expr", "omp_expr")
+drawMeBoxPlotsLores <- function() {
+  par(mfrow=c(2,5))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "prom", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "genes", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "exons", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "introns", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_medip", "ngn_medip", "tss", lores=TRUE))
+  
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "prom", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "genes", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "exons", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "introns", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_medip", "icam_medip", "tss", lores=TRUE))
 
-par(mfrow=c(2, 2))
+}
+
+drawHmeBoxPlotsHires <- function() {
+  par(mfrow=c(2,5))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_hmedip_1kb", "ngn_hmedip_1kb", "prom", lores=FALSE))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_hmedip_1kb", "ngn_hmedip_1kb", "gene", lores=FALSE))
+  
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_hmedip_1kb", "icam_hmedip_1kb", "prom", lores=FALSE))
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_hmedip_1kb", "icam_hmedip_1kb", "gene", lores=FALSE))
+}
+
+drawHmeBoxPlotsLores <- function() {
+  par(mfrow=c(2,5))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "prom", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "genes", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "exons", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "introns", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "tss", lores=TRUE))
+  
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "prom", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "genes", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "exons", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "introns", lores=TRUE))
+  foldChangeExprBoxPlot.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "tss", lores=TRUE))
+}
+
+drawHists <- function() {
+  par(mfrow=c(4, 2))
+  foldChangeExprHist.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "prom", lores=TRUE))
+  foldChangeExprHist.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "genes", lores=TRUE))
+  foldChangeExprHist.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "exons", lores=TRUE))
+  foldChangeExprHist.DiffEnrich(ompNgnComp("omp_hmedip", "ngn_hmedip", "introns", lores=TRUE))
+  foldChangeExprHist.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "prom", lores=TRUE))
+  foldChangeExprHist.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "genes", lores=TRUE))
+  foldChangeExprHist.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "exons", lores=TRUE))
+  foldChangeExprHist.DiffEnrich(ngnIcamComp("ngn_hmedip", "icam_hmedip", "introns", lores=TRUE))
+}
 
 
-foldChangeExprHist.DiffEnrich(ngn.icam.hmedip.prom)
-foldChangeExprHist.DiffEnrich(ngn.icam.hmedip.gene)
+plotAllExprComparison <- function() {
+   icam.expr <- read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/icam_expr.txt",sep="\t")
+   ngn.expr <- read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/ngn_expr.txt", sep="\t")
+   omp.expr <- read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/omp_expr.txt", sep="\t")
+   par(mfrow=c(1,2))
+   plot(log2(omp.expr$V2+1), log2(ngn.expr$V2+1), pch='.', col='blue')
+   plot(log2(ngn.expr$V2+1), log2(icam.expr$V2+1), pch='.', col='blue')
+ }
 
-foldChangeExprHist.DiffEnrich(omp.ngn.hmedip.prom)
-foldChangeExprHist.DiffEnrich(omp.ngn.hmedip.gene)
+boxPlotAllExprComparison <- function() {
+  icam.expr <- read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/icam_expr.txt",sep="\t")
+  ngn.expr <- read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/ngn_expr.txt", sep="\t")
+  omp.expr <- read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/omp_expr.txt", sep="\t")
+  ngn.icam.fc <- foldchange2logratio(foldchange(ngn.expr$V2, icam.expr$V2))
+  omp.ngn.fc <- foldchange2logratio(foldchange(omp.expr$V2, ngn.expr$V2))
+  par(mfrow=c(1,2))
+  boxplot(omp.ngn.fc, ylim=c(-60,40))
+  boxplot(ngn.icam.fc, ylim=c(-60,40))
 
-#exprPlot.DiffEnrich(omp.icam.hmedip.prom.lores)
-#exprPlot.DiffEnrich(omp.icam.hmedip.gene.lores)
+}
 
-plot(log2(omp.ngn.medip.prom$exp1$rpkm), log2(omp.ngn.medip.prom$exp2$rpkm), pch=20)
+
+
