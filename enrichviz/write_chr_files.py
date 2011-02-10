@@ -37,7 +37,7 @@ fill_color = {color}
 # FOR HEATMAP
 #scale_log_base = 10
 min = 0.0
-max = 350.0
+max = 150.0
 r0 = {r0}r
 r1 = {r1}r
 file = ../data/{dset}
@@ -136,8 +136,8 @@ def main():
             r0 = r1 + .001
             r1 = r0 + .05
         f.write(GENE_TRACK)
-        colors = ['nyt_orange', 'nyt_yellow']
-        for i in range(len(RNA_DATASETS)):
+        colors = ['red','green','blue']
+        for i in range(len(RNA_DATASETS)): 
             dset = RNA_DATASETS[i]
             dset_name = dset + "_exp.txt"
             color = colors[i]

@@ -12,9 +12,10 @@ CHRS = {'chr1' : 197195432 , 'chr2' : 181748087,\
 
 DATA_PATH = "/gpfs/home/wallen/experiment/experiment/stavros_data/dipdata/"
 
-TRACKS = ["icam_medip_100kb", "ngn_medip_100kb","omp_medip_100kb",\
-          "icam_hmedip_100kb", "ngn_hmedip_100kb", "omp_hmedip_100kb"]
+TRACKS = ["icam_medip_25kb", "ngn_medip_25kb","omp_medip_25kb",\
+          "icam_hmedip_25kb", "ngn_hmedip_25kb", "omp_hmedip_25kb"]
+TRACK_LEN = 25000
 
-RNA_DATASETS = ["ompgfp", "ngnhigh"]
+RNA_DATASETS = ["cufflinks/omp_expr", "cufflinks/ngn_expr", "cufflinks/icam_expr"]
 KNOWNGENE = "knowngenes.txt"
 MK4_DATASETS = ['ngn_mk4_intergenic.bed', 'omp_mk4_intergenic.bed']

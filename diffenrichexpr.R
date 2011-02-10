@@ -173,7 +173,7 @@ drawHists <- function() {
 
 
 plotAllExprComparison <- function() {
-   icam.expr <- read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/icam_expr.txt",sep="\t")
+   icam.expr <-read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/icam_expr.txt",sep="\t")
    ngn.expr <- read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/ngn_expr.txt", sep="\t")
    omp.expr <- read.table("~/experiment/experiment/stavros_data/gene_expr/cufflinks/omp_expr.txt", sep="\t")
    par(mfrow=c(1,2))
@@ -190,7 +190,6 @@ boxPlotAllExprComparison <- function() {
   par(mfrow=c(1,2))
   boxplot(omp.ngn.fc, ylim=c(-60,40))
   boxplot(ngn.icam.fc, ylim=c(-60,40))
-
 }
 
 
