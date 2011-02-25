@@ -17,13 +17,11 @@ source("~/src/LEA/roi.R")
 
 
 diffEnrichedMK4LoRes <- function() {
-  omp.ngn.pairs <- list(c("omp_medip", "ngn_medip"))
-  ngn.icam.pairs <- list(c("ngn_medip", "icam_medip"))
-  diffEnrichedFeaturesROILoRes(omp.ngn.pairs, "roi/ngn_mk4_intergenic.txt", "ngn_mk4")
-  diffEnrichedFeaturesROILoRes(omp.ngn.pairs, "roi/omp_mk4_intergenic.txt", "omp_mk4")
-
-  diffEnrichedFeaturesROILoRes(ngn.icam.pairs, "roi/ngn_mk4_intergenic.txt", "ngn_mk4")
-  diffEnrichedFeaturesROILoRes(ngn.icam.pairs, "roi/omp_mk4_intergenic.txt", "omp_mk4")
+  omp.ngn.pairs.hme <- list(c("omp_hmedip", "ngn_hmedip"))
+  ngn.icam.pairs.hme <- list(c("ngn_hmedip", "icam_hmedip"))
+  diffEnrichedFeaturesROILoRes(omp.ngn.pairs.hme, "roi/ngn_mk4_intergenic.txt", "ngn_mk4")
+  diffEnrichedFeaturesROILoRes(omp.ngn.pairs.hme, "roi/omp_mk4_intergenic.txt", "omp_mk4")
+  diffEnrichedFeaturesROILoRes(ngn.icam.pairs.hme, "roi/ngn_mk4_intergenic.txt", "ngn_mk4")
 }
 
 diffEnrichedROILoRes <- function() {

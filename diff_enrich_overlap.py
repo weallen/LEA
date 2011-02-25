@@ -21,7 +21,7 @@ def intersect_bed_feature_counts(fname):
     f = open(fname, 'r')
     for line in f:
         fields = line.rstrip().split('\t')
-        gid = fields[6].split("_")[0]
+        gid = fields[7].split("_")[0]
         if gid not in genes:
             genes[gid] = 0
         genes[gid] += 1
@@ -54,7 +54,8 @@ def make_gene_lists(type):
                 txfile.write("{a}\t{b}\n".format(a=f, b=c))
             genes = set()
             for f, c in feats.iteritems():
-                genes.add(kgxref[f])
+                sym = kgxref[f]
+                genes.add(sym)
             if type == "lores":
                 outfile = open(outpath + "/" + name.split('.')[0] + "_uniq_genes.txt", 'w')
             else:
@@ -110,8 +111,8 @@ def do_comparison(type):
 
 def main():
     os.chdir(DATA)
-    do_comparison("hires")
-    make_gene_lists("hires")
+    #do_comparison("hires")
+    #make_gene_lists("hires")
     
     do_comparison("lores")
     make_gene_lists("lores")

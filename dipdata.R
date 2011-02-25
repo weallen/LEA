@@ -248,6 +248,13 @@ computeAndSaveDiffEnrich.DipData <- function(dd1, dd2, fname) {
   return(p.adj)
 }
 
+
+subsetChangeDirectionLoRes.DipData <- function(dd1, dd2, roi.file) {
+  dd1.counts <- rawCountsByROILoRes.DipData(dd1)
+  dd2.counts <- rawCountsByROILoRes.DipData(dd2)
+  return(dd1.counts > dd2.counts)
+}
+
 # Coverts matrix of differentially enriched windows to matrix of spans
 # of differential enrichment (merging nearby windows)
 # uses a greedy algorithm for merging, allowing for missing windows up to some

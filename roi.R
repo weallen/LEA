@@ -59,9 +59,11 @@ saveSignificantROI <- function(in.roi, fc, p.vals, path, cutoff=0.1) {
   in.roi <- as.data.frame(in.roi)  
   cat("Found", sum(abs(fc) > 2 & p.vals < cutoff), "roi satisfying fc > 2 and less than cutoff", cutoff, "\n")
   if (sum(abs(fc) > 2 & p.vals < cutoff)) {
+    curr.fc <- fc[abs(fc) > 2 & p.vals < cutoff]
     subset.roi <- in.roi[abs(fc) > 2 & p.vals < cutoff,]
     chrs <- sapply(subset.roi$chr, numToChr)
     subset.roi$chr <- chrs
+    subset.roi$dir <- ifelse(curr.fc > 0, 1, 2)
     write.table(subset.roi, file=path, col.names=FALSE, row.names=FALSE, quote=FALSE, sep="\t")
   }
 }
